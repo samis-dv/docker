@@ -41,8 +41,8 @@ if (!isset($_SERVER["HTTP_X_HUB_SIGNATURE"])) {
 }
 
 // Validate signature
-if ($token !== hash_hmac($algorithm, $input, $token) && !$config["debug"]) {
-    respond(400, ["error" => "missing_signature"]);
+if ($token !== hash_hmac($algorithm, $input, $config["secret"]) && !$config["debug"]) {
+    respond(400, ["error" => "invalid_signature"]);
 }
 
 // Unknown project
@@ -78,7 +78,10 @@ $travis_payload = json_encode([
                 "PROJECT_TAG=" . $tag,
                 "TARGET_TAG_SUFFIX=latest"
             ],
-            "script" => $travis["script"],
+            "script" => isset($travis["script"]) ? $travis["script"] : [
+                "chmod +x ./build.sh",
+                "./build.sh",
+            ],
         ],
     ],
 ]);
