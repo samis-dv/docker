@@ -67,17 +67,24 @@ $project = $config["projects"][$repository];
 $builder = $project["builder"];
 $travis = $project["travis"];
 
+// Environment variables
+$environment = [
+    "PROJECT_NAME" => $builder["project"],
+    "PROJECT_TAG" => $tag,
+];
+
+// Do not update latest tag if it's a prerelease/rc
+if (!$json["release"]["prerelease"]) {
+    $environment["PROJECT_TAG_ALIASES"] = "latest";
+}
+
 // Trigger payload
 $travis_payload = json_encode([
     "request" => [
         "message" => "Release '" . $tag . "' created for project '" . $builder["project"] . "'",
         "branch" => isset($builder["branch"]) ? $builder["branch"] : "master",
         "config" => [
-            "env" => [
-                "PROJECT_NAME=" . $builder["project"],
-                "PROJECT_TAG=" . $tag,
-                "TARGET_TAG_SUFFIX=latest"
-            ],
+            "env" => $environment,
             "script" => isset($travis["script"]) ? $travis["script"] : [
                 "chmod +x ./build.sh",
                 "./build.sh",
