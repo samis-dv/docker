@@ -70,11 +70,11 @@ $travis = $project["travis"];
 // Trigger payload
 $travis_payload = json_encode([
     "request" => [
-        "message" => "Release '" . $tag . "' created for project '" . $builder["name"] . "'",
+        "message" => "Release '" . $tag . "' created for project '" . $builder["project"] . "'",
         "branch" => isset($builder["branch"]) ? $builder["branch"] : "master",
         "config" => [
             "env" => [
-                "PROJECT_NAME=" . $builder["name"],
+                "PROJECT_NAME=" . $builder["project"],
                 "PROJECT_TAG=" . $tag,
                 "TARGET_TAG_SUFFIX=latest"
             ],

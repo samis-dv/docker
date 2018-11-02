@@ -6,7 +6,7 @@ return [
     "projects" => [
         "user/repo" => [
             "builder" => [
-                "name" => "someproject",
+                "project" => "someproject",
                 "branch" => "somebranch",
             ],
             "travis" => [
