@@ -1,11 +1,12 @@
 <?php
 
+ob_implicit_flush(true);
 ini_set("memory_limit", "4096M");
 set_time_limit(0);
 
 function write($line) {
     echo $line . "\n";
-    ob_flush();
+    // ob_flush();
 }
 
 $config = require("/var/www/html/config/api.php");

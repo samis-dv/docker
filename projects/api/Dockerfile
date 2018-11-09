@@ -1,5 +1,5 @@
 #
-# Project
+# Builder
 #
 
 ARG BUILDER_IMAGE
@@ -11,38 +11,42 @@ RUN directus fetch api ${API_VERSION}
 # Project
 #
 
-FROM php:7.1-apache
+FROM alpine:3.8
 
-# Change DocumentRoot path
-RUN sed -i 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf
+# s6 overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.7.0/s6-overlay-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
 
-# Install needed packages
-RUN apt-get update && \
-    apt-get install -y git zip libpng-dev libmagickwand-dev --no-install-recommends
+# Dependencies
+RUN apk add --no-cache \
+    nginx \
+    php7 \
+    php7-curl \
+    php7-fileinfo \
+    php7-fpm \
+    php7-gd \
+    php7-json \
+    php7-mbstring \
+    php7-opcache \
+    php7-pdo \
+    php7-pdo_mysql \
+    php7-zlib && \
+    mkdir -p /var/www/html/
 
-RUN pecl install imagick && \
-    docker-php-ext-enable imagick && \
-    rm -r /var/lib/apt/lists/*
+# Files
+COPY rootfs /
 
-# Configure PHP extentions
-RUN docker-php-ext-configure \
-    gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+# Services
+RUN chmod 755 /etc/services.d/nginx/run && \
+    chmod 755 /etc/services.d/nginx/finish && \
+    chmod 755 /etc/services.d/php_fpm/run && \
+    chmod 755 /etc/services.d/php_fpm/finish
 
-# Install PHP Extensions
-RUN docker-php-ext-install pdo_mysql mbstring gd
-
-# Rewrite
-RUN a2enmod rewrite
-
-# Copy project
-COPY --chown=www-data:www-data --from=builder /directus/tmp/api/ /var/www/html/
-
-# Copy configuration file
-COPY --chown=www-data:www-data api.php /var/www/html/config/api.php
-
-# Copy files
+# Directus
+COPY --from=builder /directus/tmp/api/ /var/www/html/
+COPY api.php /var/www/html/config/api.php
 COPY bootstrap.php /root/bootstrap.php
-COPY entrypoint.sh /root/entrypoint.sh
-RUN chmod +x /root/entrypoint.sh
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+# Entrypoint
+ENTRYPOINT ["/init"]
+CMD []

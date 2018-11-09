@@ -1,0 +1,28 @@
+#!/usr/bin/with-contenv sh
+set -e;
+
+fpm_is_up() {
+    stat /var/run/php7-fpm.sock &> /dev/null
+}
+
+echo "nginx: waiting for fpm..."
+
+RETRIES=${FPM_WAIT_TIMEOUT:-30}
+RETRY_COUNT=0
+until fpm_is_up || [ $RETRY_COUNT -eq $RETRIES ]
+do
+    sleep 1s
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+
+if [ $RETRY_COUNT -eq $RETRIES ]
+then
+    echo "nginx: fpm timeout"
+    exit 1
+fi
+
+echo "nginx: running bootstrap..."
+php7 /root/bootstrap.php
+
+echo "nginx: starting..."
+exec /usr/sbin/nginx

@@ -1,5 +1,5 @@
 #
-# Project
+# Builder
 #
 
 ARG BUILDER_IMAGE
@@ -8,7 +8,7 @@ ARG APP_VERSION
 RUN directus fetch app ${APP_VERSION}
 
 #
-# Nginx
+# Project
 #
 
 FROM nginx:stable-alpine
