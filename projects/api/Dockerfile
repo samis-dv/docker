@@ -21,15 +21,24 @@ RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
 RUN apk add --no-cache \
     nginx \
     php7 \
-    php7-curl \
-    php7-fileinfo \
     php7-fpm \
+    php7-curl \
+    php7-dom \
+    php7-exif \
+    php7-fileinfo \
     php7-gd \
+    php7-iconv \
+    php7-intl \
     php7-json \
     php7-mbstring \
     php7-opcache \
+    php7-openssl \
     php7-pdo \
     php7-pdo_mysql \
+    php7-redis \
+    php7-session \
+    php7-xml \
+    php7-zip \
     php7-zlib && \
     mkdir -p /var/www/html/
 
