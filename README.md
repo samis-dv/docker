@@ -168,11 +168,11 @@ docker run \
 > The above example will run an `api` container and expose it on port 7000. To manage this instance you should also run an `app` container that points to this instance.
 
 
-## API Container
+## APP Container
 
 ### Configuration
 
-API can be configured via environment variables. These are some of the supported variables.
+APP can be configured via environment variables. These are some of the supported variables.
 
 ### General variables
 
@@ -191,7 +191,7 @@ API can be configured via environment variables. These are some of the supported
       <td>At least once</td>
       <td>&nbsp;</td>
       <td>
-        The supported `app` endpoints.<br/>
+        The supported `api` endpoints.<br/>
         Should follow the format "Name; url"
       </td>
     </tr>
