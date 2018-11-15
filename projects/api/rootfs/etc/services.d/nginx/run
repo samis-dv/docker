@@ -5,10 +5,18 @@ fpm_is_up() {
     stat /var/run/php7-fpm.sock &> /dev/null
 }
 
+db_is_up() {
+    nc -z "${DATABASE_HOST:-database}" "${DATABASE_PORT:-3306}" >/dev/null 2>&1
+}
+
+#
+# Nginx
+#
+
 echo "nginx: waiting for fpm..."
 
-RETRIES=${FPM_WAIT_TIMEOUT:-30}
 RETRY_COUNT=0
+RETRIES=${FPM_WAIT_TIMEOUT:-30}
 until fpm_is_up || [ $RETRY_COUNT -eq $RETRIES ]
 do
     sleep 1s
@@ -20,6 +28,30 @@ then
     echo "nginx: fpm timeout"
     exit 1
 fi
+
+#
+# Database
+#
+
+echo "nginx: waiting for database..."
+
+RETRY_COUNT=0
+RETRIES=${DATABASE_WAIT_TIMEOUT:-30}
+until db_is_up || [ $RETRY_COUNT -eq $RETRIES ]
+do
+    sleep 1s
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+
+if [ $RETRY_COUNT -eq $RETRIES ]
+then
+    echo "nginx: fpm timeout"
+    exit 1
+fi
+
+#
+# Database
+#
 
 echo "nginx: running bootstrap..."
 php7 /root/bootstrap.php

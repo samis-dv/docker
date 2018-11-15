@@ -12,85 +12,92 @@ function write($line) {
 $config = require("/var/www/html/config/api.php");
 
 if ($config["database"]["type"] !== "mysql") {
-    write("Bootstrap script only supports MySQL backends.");
+    write("");
+    write("  ERROR: Bootstrap script only supports MySQL backends.");
+    write("");
     exit(1);
 }
+
+// Database connection
 
 write("Connecting to the database...");
 
-$retries = getenv("DATABASE_RETRY");
-if (!$retries) {
-    $retries = 30;
-} else {
-    $retries = intval($retries);
-}
-
-while ($retries-- > 0) {
-    try {
-        $dsn = "mysql:" .
-            "host=" . $config["database"]["host"] . ";" .
-            "port=" . $config["database"]["port"] . ";";
-        $connection = new PDO($dsn,
-            $config["database"]["username"],
-            $config["database"]["password"], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
-    } catch (PDOException $e) {
-        $connection = false;
-        write("Database connection failed. If this is the first run, MySQL might be still initializing.");
-        write("> ". $e->getMessage());
-        sleep(5);
-        continue;
-    }
-    break;
-}
-
-if (!$connection) {
-    write("Cannot connect to the database server.");
-    exit(1);
-} else {
-    write("Connected to the database instance.");
-}
-
-// Select database
-
 try {
-    $statement = $connection->prepare("USE " . $config["database"]["name"]);
-    $statement->execute();
+    $dsn = "mysql:" .
+        "host=" . $config["database"]["host"] . ";" .
+        "port=" . $config["database"]["port"] . ";" .
+        "dbname=" . $config["database"]["name"] . ";";
+    $connection = new PDO($dsn,
+        $config["database"]["username"],
+        $config["database"]["password"], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
 } catch (PDOException $e) {
-    write("Failed to select database.");
-    write($e->getMessage());
+    write("");
+    write("  ERROR: Database connection failed.");
+    write("  " . $e->getMessage());
+    write("");
     exit(1);
 }
 
-// Initialize if necessary
+// Check if we need to install
 
-$shouldInstall = false;
+$install = true;
 
 try {
     $statement = $connection->prepare("SHOW TABLES");
     $statement->execute();
-    $tables = $statement->fetchAll(PDO::FETCH_CLASS);
-    if (sizeof($tables) <= 0) {
-        $shouldInstall = true;
+    $tables = $statement->fetchAll();
+    foreach ($tables as $table) {
+        $name = strtolower($table[0]);
+        if (substr($name, 0, 9) === "directus_") {
+            $install = false;
+            break;
+        }
     }
 } catch (PDOException $e) {
-    write("Failed to list database tables.");
-    write($e->getMessage());
+    write("");
+    write("  ERROR: Failed to list database tables.");
+    write("  " . $e->getMessage());
+    write("");
     exit(1);
 }
 
 // Initialize
 
-if ($shouldInstall) {
+if ($install) {
+
+    $admin_email = getenv("ADMIN_EMAIL");
+    if (!$admin_email) {
+        write("");
+        write("  ERROR: Missing ADMIN_EMAIL environment variable");
+        write("");
+        exit(1);
+    }
+
+    $admin_password_generated = false;
+    $admin_password = getenv("ADMIN_PASSWORD");
+    if (!$admin_password) {
+        $admin_password = substr(md5(uniqid("directus")), 0, 8);
+        $admin_password_generated = true;
+    }
 
     write("Installing database...");
-    sleep(3);
     passthru("/var/www/html/bin/directus install:database");
 
-    # Why not working?
     write("Installing data...");
-    sleep(3);
-    passthru("/var/www/html/bin/directus install:install -e \"admin@admin.com\" -p \"admin\" -t \"Directus\"");
+    passthru("/var/www/html/bin/directus install:install -e \"" . $admin_email . "\" -p \"" . $admin_password . "\" -t \"Directus\"");
+
+    write("");
+    write(" Directus database installed.");
+    if ($admin_password_generated) {
+        write("");
+        write("  The credentials for admin account are:");
+        write("");
+        write("      Email: " . $admin_email);
+        write("   Password: " . $admin_password);
+        write("");
+    }
+    write("");
 
 }

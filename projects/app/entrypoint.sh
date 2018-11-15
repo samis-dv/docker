@@ -7,6 +7,7 @@ VALUES=""
 entries=$(env | grep API_ENDPOINT)
 
 # Parse and normalize entries
+HAS_ENDPOINTS=0
 IFS=$'\n';
 for entry in $entries
 do
@@ -20,6 +21,7 @@ do
     LINK=$(echo "$2" | tr -d '"' | tr -d '\' | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//')
     VALUES=$VALUES"      \"$LINK\": \"$NAME\",\n"
     IFS=$'\n';
+    HAS_ENDPOINTS=1
 done
 
 # Escape for sed and valid JS for IE

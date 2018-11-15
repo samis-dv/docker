@@ -4,6 +4,7 @@
 # Exports
 #
 
+export DOCKER_PUSH=${DOCKER_PUSH:-"1"}
 export DOCKER_PROJECTS=./projects
 
 export BUILDER_IMAGE=${BUILDER_IMAGE:-"directus/builder:latest"}
@@ -27,6 +28,10 @@ build_builder() {
     if [ "$?" != "0" ]; then
         echo "Failed to build image"
         exit 1
+    fi
+
+    if [ "${DOCKER_PUSH}" == "0" ]; then
+        exit 0
     fi
 
     docker push "${TARGET_IMAGE_BUILDER}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
@@ -55,6 +60,10 @@ build_api() {
         exit 1
     fi
 
+    if [ "${DOCKER_PUSH}" == "0" ]; then
+        exit 0
+    fi
+
     docker push "${TARGET_IMAGE_API}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
 
     for tag_alias in ${PROJECT_TAG_ALIASES}
@@ -79,6 +88,10 @@ build_app() {
     if [ "$?" != "0" ]; then
         echo "Failed to build image"
         exit 1
+    fi
+
+    if [ "${DOCKER_PUSH}" == "0" ]; then
+        exit 0
     fi
 
     docker push "${TARGET_IMAGE_APP}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"

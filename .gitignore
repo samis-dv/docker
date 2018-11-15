@@ -1,6 +1,4 @@
 /projects/builder/tmp/
 /projects/builder/dist/
 /webhooks/src/config.php
-/Dockerfile
-/docker-compose.yml
 .env
