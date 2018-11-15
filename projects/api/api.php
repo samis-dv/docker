@@ -112,7 +112,7 @@ if (!function_exists("api_config_read")) {
             'mail' => [
                 'default' => [
                     'transport' => getenvs('MAIL_DEFAULT_TRANSPORT', 'sendmail'),
-                    'from' => getenvs('MAIL_DEFAULT_TRANSPORT', 'admin@example.com')
+                    'from' => getenvs('MAIL_DEFAULT_FROM', 'admin@example.com')
                 ],
             ],
 
