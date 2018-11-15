@@ -19,7 +19,7 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: docker support is still experimental and we're still gather more feedback from the community. You can raise issues or ping us in #docker channel on [slack](https://slack.getdirectus.com/).
+> **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [slack](https://slack.getdirectus.com/).
 
 ## Overview
 
@@ -170,10 +170,6 @@ docker run \
 
 ## API Container
 
-### Requirements
-
-- MySQL compatible database container running
-
 ### Configuration
 
 API can be configured via environment variables. These are some of the supported variables.
@@ -204,7 +200,7 @@ API can be configured via environment variables. These are some of the supported
 
 You can manage multiple `api` endpoints using only one instance of `app` container. For example, if you want to manage two instances, you should set two variables that starts with `API_ENDPOINT_`
 
-```.env
+```
 API_ENDPOINT_STAGING="Staging; http://staging.server.com/_/"
 API_ENDPOINT_PRODUCTION="Production; http://production.server.com/_/"
 ```
@@ -219,6 +215,11 @@ docker run \
 ```
 
 Assuming there's an `api` instance running on port 7000, you should now be able to manage it through `app` by accessing [localhost on port 8000](http://localhost:8000/).
+
+
+## Examples
+
+You can check examples under the [examples folder](https://github.com/directus/docker/tree/master/examples) on GitHub.
 
 <p>&nbsp;</p>
 
