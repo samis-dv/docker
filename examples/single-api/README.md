@@ -7,6 +7,11 @@ Single API
 
 > Make sure there these ports are free, otherwise you might get errors while compose starts the containers.
 
+Running
+=======
+
+> `docker-compose up`
+
 Endpoints
 =========
 
