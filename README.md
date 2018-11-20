@@ -21,21 +21,21 @@
 
 > **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [slack](https://slack.getdirectus.com/).
 
-## Overview
+# Overview
 
 Directus docker images can be found in [docker hub](https://hub.docker.com/r/directus/) under `directus` username. Images are pushed automatically each time a new release is created in [api](https://github.com/directus/api) or [app](https://github.com/directus/app) repositories.
 
-## API Container
+# API Container
 
-### Requirements
+## Requirements
 
 - MySQL compatible database container running
 
-### Configuration
+## Configuration
 
 API can be configured via environment variables. These are some of the supported variables.
 
-### General variables
+## General variables
 
 <table>
   <thead>
@@ -56,7 +56,7 @@ API can be configured via environment variables. These are some of the supported
   </tbody>
 <table>
 
-### Authentication variables
+## Authentication variables
 
 <table>
   <thead>
@@ -87,7 +87,7 @@ API can be configured via environment variables. These are some of the supported
 
 > \*\* The installation process will not require the `ADMIN_PASSWORD` to be set, and if it doesn't detect it, it will generate a new password and output the credentials in the logs when it finishes seeding.
 
-### Database variables
+## Database variables
 
 <table>
   <thead>
@@ -150,31 +150,13 @@ API can be configured via environment variables. These are some of the supported
   </tbody>
 <table>
 
-### Running
+# API Container
 
-```
-docker run \
-  --link database:database \
-  --env "DATABASE_HOST=database" \
-  --env "DATABASE_PORT=3306" \
-  --env "DATABASE_NAME=mydatabase" \
-  --env "DATABASE_USERNAME=root" \
-  --env "DATABASE_PASSWORD=root" \
-  --env "ADMIN_EMAIL=email@email.com" \
-  --publish 7000:80 \
-  directus/api:latest
-```
-
-> The above example will run an `api` container and expose it on port 7000. To manage this instance you should also run an `app` container that points to this instance.
-
-
-## API Container
-
-### Configuration
+## Configuration
 
 API can be configured via environment variables. These are some of the supported variables.
 
-### General variables
+## General variables
 
 <table>
   <thead>
@@ -205,19 +187,7 @@ API_ENDPOINT_STAGING="Staging; http://staging.server.com/_/"
 API_ENDPOINT_PRODUCTION="Production; http://production.server.com/_/"
 ```
 
-### Running
-
-```
-docker run \
-  --env API_ENDPOINT="Directus; http://localhost:7000/_/" \
-  --publish 8000:80 \
-  directus/app:latest
-```
-
-Assuming there's an `api` instance running on port 7000, you should now be able to manage it through `app` by accessing [localhost on port 8000](http://localhost:8000/).
-
-
-## Examples
+# Examples
 
 You can check examples under the [examples folder](https://github.com/directus/docker/tree/master/examples) on GitHub.
 
