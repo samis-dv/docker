@@ -173,7 +173,7 @@ API can be configured via environment variables. These are some of the supported
       <td>At least once</td>
       <td>&nbsp;</td>
       <td>
-        The supported `app` endpoints.<br/>
+        The supported `api` endpoints.<br/>
         Should follow the format "Name; url"
       </td>
     </tr>
