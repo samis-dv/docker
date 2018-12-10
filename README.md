@@ -4,17 +4,19 @@
   </a>
 </p>
 
+<p>&nbsp;</p>
+
 <h1 align="center">
-  Directus Docker
+  The All-New Directus 7<br>Future-Proof Headless CMS
 </h1>
 
 <h3 align="center">
-  <a href="https://directus.io">Website</a> •
-  <a href="https://docs.directus.io">Docs</a> •
-  <a href="https://docs.directus.io/api/reference.html">API Reference</a> •
-  <a href="https://docs.directus.io/app/user-guide.html">User Guide</a> •
-  <a href="https://directus.app">Demo</a> •
-  <a href="https://docs.directus.io/supporting-directus.html">Contribute</a>
+  <a href="https://directus.io">Website</a> • 
+  <a href="https://docs.directus.io">Docs</a> • 
+  <a href="https://docs.directus.io/api/reference.html">API Reference</a> • 
+  <a href="https://docs.directus.io/guides/user-guide.html">User Guide</a> • 
+  <a href="https://directus.app">Demo</a> • 
+  <a href="https://docs.directus.io/getting-started/supporting-directus.html">Contribute</a>
 </h3>
 
 <p>&nbsp;</p>
