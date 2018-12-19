@@ -39,7 +39,9 @@ RUN apk add --no-cache \
     php7-session \
     php7-xml \
     php7-zip \
-    php7-zlib && \
+    php7-zlib \
+    php7-imagick \
+    imagemagick && \
     mkdir -p /var/www/html/
 
 # Files

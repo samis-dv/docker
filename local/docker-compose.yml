@@ -21,9 +21,8 @@ services:
     image: $LOCAL_IMAGE
     stdin_open: true
     tty: true
-    privileged: true
     environment:
-      DOCKER_PUSH: "0"
+      DOCKER_PUSH: "${DOCKER_PUSH:-0}"
       DOCKER_USERNAME: $DOCKER_USERNAME
       DOCKER_PASSWORD: $DOCKER_PASSWORD
       TARGET_IMAGE_BUILDER: $TARGET_IMAGE_BUILDER
@@ -32,7 +31,7 @@ services:
       TARGET_TAG_SUFFIX: $TARGET_TAG_SUFFIX
       PROJECT_NAME: $BUILDER_PROJECT_NAME
       PROJECT_TAG: $BUILDER_PROJECT_TAG
-      PROJECT_TAG_ALIASES: ""
+      PROJECT_TAG_ALIASES: $PROJECT_TAG_ALIASES
     privileged: true
     depends_on:
       - build-base
@@ -45,9 +44,8 @@ services:
   build-api:
     container_name: build-api
     image: $LOCAL_IMAGE
-    privileged: true
     environment:
-      DOCKER_PUSH: "0"
+      DOCKER_PUSH: "${DOCKER_PUSH:-0}"
       DOCKER_USERNAME: $DOCKER_USERNAME
       DOCKER_PASSWORD: $DOCKER_PASSWORD
       TARGET_IMAGE_BUILDER: $TARGET_IMAGE_BUILDER
@@ -57,7 +55,7 @@ services:
       BUILDER_IMAGE: $BUILDER_IMAGE
       PROJECT_NAME: $API_PROJECT_NAME
       PROJECT_TAG: $API_PROJECT_TAG
-      PROJECT_TAG_ALIASES: ""
+      PROJECT_TAG_ALIASES: $PROJECT_TAG_ALIASES
     privileged: true
     depends_on:
       - build-base
@@ -72,7 +70,7 @@ services:
     container_name: build-app
     image: $LOCAL_IMAGE
     environment:
-      DOCKER_PUSH: "0"
+      DOCKER_PUSH: "${DOCKER_PUSH:-0}"
       DOCKER_USERNAME: $DOCKER_USERNAME
       DOCKER_PASSWORD: $DOCKER_PASSWORD
       TARGET_IMAGE_BUILDER: $TARGET_IMAGE_BUILDER
@@ -82,7 +80,7 @@ services:
       BUILDER_IMAGE: $BUILDER_IMAGE
       PROJECT_NAME: $APP_PROJECT_NAME
       PROJECT_TAG: $APP_PROJECT_TAG
-      PROJECT_TAG_ALIASES: ""
+      PROJECT_TAG_ALIASES: $PROJECT_TAG_ALIASES
     privileged: true
     depends_on:
       - build-base

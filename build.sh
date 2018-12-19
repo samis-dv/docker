@@ -30,16 +30,16 @@ build_builder() {
         exit 1
     fi
 
-    if [ "${DOCKER_PUSH}" == "0" ]; then
-        exit 0
+    if [ "${DOCKER_PUSH}" == "1" ]; then
+        docker push "${TARGET_IMAGE_BUILDER}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
     fi
-
-    docker push "${TARGET_IMAGE_BUILDER}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
 
     for tag_alias in ${PROJECT_TAG_ALIASES}
     do
         docker tag "${TARGET_IMAGE_BUILDER}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}" "${TARGET_IMAGE_BUILDER}:${tag_alias}${TARGET_TAG_SUFFIX}"
-        docker push "${TARGET_IMAGE_BUILDER}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        if [ "${DOCKER_PUSH}" == "1" ]; then
+            docker push "${TARGET_IMAGE_BUILDER}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        fi
     done
 
 }
@@ -60,16 +60,16 @@ build_api() {
         exit 1
     fi
 
-    if [ "${DOCKER_PUSH}" == "0" ]; then
-        exit 0
+    if [ "${DOCKER_PUSH}" == "1" ]; then
+        docker push "${TARGET_IMAGE_API}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
     fi
-
-    docker push "${TARGET_IMAGE_API}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
 
     for tag_alias in ${PROJECT_TAG_ALIASES}
     do
         docker tag "${TARGET_IMAGE_API}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}" "${TARGET_IMAGE_API}:${tag_alias}${TARGET_TAG_SUFFIX}"
-        docker push "${TARGET_IMAGE_API}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        if [ "${DOCKER_PUSH}" == "1" ]; then
+            docker push "${TARGET_IMAGE_API}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        fi
     done
 
 }
@@ -90,16 +90,16 @@ build_app() {
         exit 1
     fi
 
-    if [ "${DOCKER_PUSH}" == "0" ]; then
-        exit 0
+    if [ "${DOCKER_PUSH}" == "1" ]; then
+        docker push "${TARGET_IMAGE_APP}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
     fi
-
-    docker push "${TARGET_IMAGE_APP}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}"
 
     for tag_alias in ${PROJECT_TAG_ALIASES}
     do
         docker tag "${TARGET_IMAGE_APP}:${PROJECT_TAG}${TARGET_TAG_SUFFIX}" "${TARGET_IMAGE_APP}:${tag_alias}${TARGET_TAG_SUFFIX}"
-        docker push "${TARGET_IMAGE_APP}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        if [ "${DOCKER_PUSH}" == "1" ]; then
+            docker push "${TARGET_IMAGE_APP}:${tag_alias}${TARGET_TAG_SUFFIX}"
+        fi
     done
 
 }

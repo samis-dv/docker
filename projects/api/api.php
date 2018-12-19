@@ -102,11 +102,12 @@ if (!function_exists("api_config_read")) {
                 'adapter' => getenvs('STORAGE_ADAPTER', 'local'),
                 'root' => getenvs('STORAGE_ROOT', 'public/uploads/_/originals'),
                 'root_url' => getenvs('STORAGE_ROOT_URL', '/uploads/_/originals'),
+                'thumb_root' => getenvs('STORAGE_THUMB_URL', 'public/uploads/_/thumbnails'),
                 'key' => getenvs('STORAGE_KEY', 's3-key'),
                 'secret' => getenvs('STORAGE_SECRET', 's3-secret'),
-                'region' => getenvs('STORAGE_REGION', 's3-region'),
-                'version' => getenvs('STORAGE_VERSION', 's3-version'),
-                'bucket' => getenvs('STORAGE_BUCKET', 's3-bucket'),
+                'region' => getenvs('STORAGE_REGION', 'us-east-1'),
+                'version' => getenvs('STORAGE_VERSION', 'latest'),
+                'bucket' => getenvs('STORAGE_BUCKET', 'directus'),
             ],
 
             'mail' => [
@@ -161,6 +162,11 @@ if (!function_exists("api_config_read")) {
                 ]
             ],
         ];
+
+        $endpoint = getenvs('STORAGE_ENDPOINT', false);
+        if ($endpoint !== false) {
+            $config['storage']['endpoint'] = $endpoint;
+        }
 
         if (sizeof(getenvk('AUTH_OKTA_')) > 0) {
             $config['auth']['social_providers']['okta'] = [

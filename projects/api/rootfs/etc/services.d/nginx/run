@@ -16,7 +16,7 @@ db_is_up() {
 echo "nginx: waiting for fpm..."
 
 RETRY_COUNT=0
-RETRIES=${FPM_WAIT_TIMEOUT:-30}
+RETRIES=${FPM_WAIT_TIMEOUT:-120}
 until fpm_is_up || [ $RETRY_COUNT -eq $RETRIES ]
 do
     sleep 1s
@@ -36,7 +36,7 @@ fi
 echo "nginx: waiting for database..."
 
 RETRY_COUNT=0
-RETRIES=${DATABASE_WAIT_TIMEOUT:-30}
+RETRIES=${DATABASE_WAIT_TIMEOUT:-120}
 until db_is_up || [ $RETRY_COUNT -eq $RETRIES ]
 do
     sleep 1s
