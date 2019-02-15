@@ -21,7 +21,7 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [slack](https://slack.getdirectus.com/).
+> **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
