@@ -5,4 +5,5 @@ services:
   - docker
 
 script:
-  - "true"
+  - chmod +x ./scripts/build.sh
+  - ./scripts/build.sh

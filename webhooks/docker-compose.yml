@@ -1,0 +1,10 @@
+version: "3"
+services:
+  webhook:
+    build: "."
+    env_file: ./.env
+    volumes:
+      - ./src/:/var/www/html/
+  webhook-tunnel:
+    image: wolfulus/serveo-tunnel:latest
+    command: serveo.net webhook:80 directus
