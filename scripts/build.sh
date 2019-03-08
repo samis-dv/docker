@@ -1,30 +1,85 @@
 #!/bin/bash
 
-API_VERSION=${API_VERSION:-""}
-APP_VERSION=${API_VERSION:-""}
-DOCKER_TAGS=${DOCKER_TAGS:-""}
+#
+# Generic build script
+#
+build_image() {
+  PROJECT=$1
+  RELEASE=$2
+  FLAVOUR=$3
+  IMAGE=$4
+  TAG=$5
+  PUSH=${6:-"0"}
 
-# Check API version
-if [ "~${API_VERSION}" == "~" ]; then
-  echo "No API version specified"
-  exit 0
-fi
+  echo "=================================================================="
+  echo " (${FLAVOUR}) ${IMAGE}:${TAG}-${FLAVOUR} "
+  echo "=================================================================="
 
-# Check APP version
-if [ "~${APP_VERSION}" == "~" ]; then
-  echo "No APP version specified"
-  exit 0
-fi
+  docker build -t "${IMAGE}:${TAG}-${FLAVOUR}" --build-arg "RELEASE=${RELEASE}" docker/${FLAVOUR}/${PROJECT}
 
-# Check docker tags
-if [ "~${DOCKER_TAGS}" == "~" ]; then
-  echo "WARNING: No Docker tags specified. No images will be pushed."
-else
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-fi
+  if [ "${PUSH}" != "0" ]; then
+    # Push image
+    echo docker push "${IMAGE}:${TAG}-${FLAVOUR}"
 
-echo "Build script started"
+    # Apache is the default supported flavour
+    if [ "${FLAVOUR}" == "apache" ]; then
+      echo docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:${TAG}"
+      echo docker push "${IMAGE}:${TAG}"
+    fi
 
-echo "<WIP>"
+    # Push latest if requested
+    if [ "${PUSH}" == "latest" ]; then
+      echo docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:latest"
+      echo docker push "${IMAGE}:latest"
+    fi
+  fi
+}
 
-echo "Build script finished"
+#
+# Main
+#
+main() {
+
+  # Variables
+  export PROJECT_NAME=${PROJECT_NAME:-""}
+  export PROJECT_RELEASE=${PROJECT_RELEASE:-""}
+  export PROJECT_IMAGE=${PROJECT_IMAGE:-"directus/${PROJECT_NAME}"}
+  export PROJECT_TAG=${PROJECT_TAG:-"?"}
+  export PROJECT_FLAVOUR=${PROJECT_FLAVOUR:-"apache"}
+  export PROJECT_PUSH=${PROJECT_PUSH:-"0"}
+
+  # Normalize tag
+  if [ "${PROJECT_TAG}" == "?" ]; then
+    if [ "${PROJECT_RELEASE:0:1}" == "v" ]; then
+      export PROJECT_TAG="${PROJECT_RELEASE:1}"
+    else
+      export PROJECT_TAG="${PROJECT_RELEASE}"
+    fi
+  fi
+
+  # Check project name
+  if [ "~${PROJECT_NAME}" == "~" ]; then
+    echo "No project specified"
+    exit 1
+  fi
+
+  # Check project release
+  if [ "~${PROJECT_RELEASE}" == "~" ]; then
+    echo "No release specified"
+    exit 1
+  fi
+
+  # Check docker tags
+  if [ "~${DOCKER_PASSWORD}" != "~" ]; then
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  fi
+
+  if [[ "app api directus" =~ (^|[[:space:]])${PROJECT_NAME}($|[[:space:]]) ]]; then
+    build_image "${PROJECT_NAME}" "${PROJECT_RELEASE}" "${PROJECT_FLAVOUR}" "${PROJECT_IMAGE}" "${PROJECT_TAG}" "${PROJECT_PUSH}"
+  else
+    echo "Unsupported project ${PROJECT_NAME}."
+    exit 1
+  fi
+}
+
+main
