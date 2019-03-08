@@ -60,13 +60,13 @@ main() {
   # Check project name
   if [ "~${PROJECT_NAME}" == "~" ]; then
     echo "No project specified"
-    exit 1
+    exit 0
   fi
 
   # Check project release
   if [ "~${PROJECT_RELEASE}" == "~" ]; then
     echo "No release specified"
-    exit 1
+    exit 0
   fi
 
   # Check docker tags
