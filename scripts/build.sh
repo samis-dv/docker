@@ -19,18 +19,18 @@ build_image() {
 
   if [ "${PUSH}" != "0" ]; then
     # Push image
-    echo docker push "${IMAGE}:${TAG}-${FLAVOUR}"
+    docker push "${IMAGE}:${TAG}-${FLAVOUR}"
 
     # Apache is the default supported flavour
     if [ "${FLAVOUR}" == "apache" ]; then
-      echo docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:${TAG}"
-      echo docker push "${IMAGE}:${TAG}"
+      docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:${TAG}"
+      docker push "${IMAGE}:${TAG}"
     fi
 
     # Push latest if requested
     if [ "${PUSH}" == "latest" ]; then
-      echo docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:latest"
-      echo docker push "${IMAGE}:latest"
+      docker tag "${IMAGE}:${TAG}-${FLAVOUR}" "${IMAGE}:latest"
+      docker push "${IMAGE}:latest"
     fi
   fi
 }
