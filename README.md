@@ -21,8 +21,6 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
-
 # Overview
 
 Directus docker images can be found in [docker hub](https://hub.docker.com/r/directus/) under `directus` username. Images are pushed automatically each time a new release is created in [api](https://github.com/directus/api) or [app](https://github.com/directus/app) repositories.
