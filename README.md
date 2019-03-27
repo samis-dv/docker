@@ -150,11 +150,11 @@ API can be configured via environment variables. These are some of the supported
   </tbody>
 <table>
 
-# API Container
+# App Container
 
 ## Configuration
 
-API can be configured via environment variables. These are some of the supported variables.
+App can be configured via environment variables. These are some of the supported variables.
 
 ## General variables
 
@@ -196,5 +196,5 @@ You can check examples under the [examples folder](https://github.com/directus/d
 ----
 
 <p align="center">
-  Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2018, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.
+  Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2019, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.
 </p>
