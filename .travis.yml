@@ -4,6 +4,7 @@ language: minimal
 services:
   - docker
 
+image: wolfulus/tusk
+
 script:
-  - chmod +x ./scripts/build.sh
-  - ./scripts/build.sh
+  - tusk --help

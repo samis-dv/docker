@@ -11,23 +11,27 @@
 </h1>
 
 <h3 align="center">
-  <a href="https://directus.io">Website</a> • 
-  <a href="https://docs.directus.io">Docs</a> • 
-  <a href="https://docs.directus.io/api/reference.html">API Reference</a> • 
-  <a href="https://docs.directus.io/guides/user-guide.html">User Guide</a> • 
-  <a href="https://directus.app">Demo</a> • 
+  <a href="https://directus.io">Website</a> •
+  <a href="https://docs.directus.io">Docs</a> •
+  <a href="https://docs.directus.io/api/reference.html">API Reference</a> •
+  <a href="https://docs.directus.io/guides/user-guide.html">User Guide</a> •
+  <a href="https://directus.app">Demo</a> •
   <a href="https://docs.directus.io/getting-started/supporting-directus.html">Contribute</a>
 </h3>
 
 <p>&nbsp;</p>
 
-> **Warning**: docker support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
+> **Warning**: container support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
-Directus docker images can be found in [docker hub](https://hub.docker.com/r/directus/) under `directus` username. Images are pushed automatically each time a new release is created in [api](https://github.com/directus/api) or [app](https://github.com/directus/app) repositories.
+Directus provides several container images that will help you get started. Even though we maintain extra `flavours`, our officially supported image is based on `apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
-# API Container
+# Directus
+
+## Variants
+
+- [apache](./docker/directus/variants/apache/Dockerfile)
 
 ## Requirements
 
@@ -35,30 +39,9 @@ Directus docker images can be found in [docker hub](https://hub.docker.com/r/dir
 
 ## Configuration
 
-API can be configured via environment variables. These are some of the supported variables.
+All configuration variables should be changed through environment variables.
 
-## General variables
-
-<table>
-  <thead>
-    <tr>
-      <th>Environment</th>
-      <th>Required</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>APP_TIMEZONE</td>
-      <td>&nbsp;</td>
-      <td>America/New_York</td>
-      <td>The API server timezone</td>
-    </tr>
-  </tbody>
-<table>
-
-## Authentication variables
+### General variables
 
 <table>
   <thead>
@@ -71,129 +54,13 @@ API can be configured via environment variables. These are some of the supported
   </thead>
   <tbody>
     <tr>
-      <td>ADMIN_EMAIL</td>
-      <td>Yes*</td>
-      <td>&nbsp;</td>
-      <td>The admin email</td>
-    </tr>
-    <tr>
-      <td>ADMIN_PASSWORD</td>
-      <td>&nbsp;</td>
-      <td>generated**</td>
-      <td>The admin password</td>
+      <td><i>placeholder</i></td>
+      <td><i>placeholder</i></td>
+      <td><i>placeholder</i></td>
+      <td><i>placeholder</i></td>
     </tr>
   </tbody>
 <table>
-
-> \* If there's no directus tables on the database, the auto-installation process will require you to provide the initial admin email, thus requiring the `ADMIN_EMAIL` variable in order to seed the initial user into the database.
-
-> \*\* The installation process will not require the `ADMIN_PASSWORD` to be set, and if it doesn't detect it, it will generate a new password and output the credentials in the logs when it finishes seeding.
-
-## Database variables
-
-<table>
-  <thead>
-    <tr>
-      <th>Environment</th>
-      <th>Required</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>DATABASE_HOST</td>
-      <td>Yes</td>
-      <td>&nbsp;</td>
-      <td>The database hostname/address</td>
-    </tr>
-    <tr>
-      <td>DATABASE_USERNAME</td>
-      <td>Yes</td>
-      <td>&nbsp;</td>
-      <td>The database username</td>
-    </tr>
-    <tr>
-      <td>DATABASE_PASSWORD</td>
-      <td>Yes</td>
-      <td>&nbsp;</td>
-      <td>The database password</td>
-    </tr>
-    <tr>
-      <td>DATABASE_PORT</td>
-      <td>&nbsp;</td>
-      <td>3306</td>
-      <td>The database port</td>
-    </tr>
-    <tr>
-      <td>DATABASE_NAME</td>
-      <td>&nbsp;</td>
-      <td>directus</td>
-      <td>The database name</td>
-    </tr>
-    <tr>
-      <td>DATABASE_TYPE</td>
-      <td>&nbsp;</td>
-      <td>mysql</td>
-      <td>The database type</td>
-    </tr>
-    <tr>
-      <td>DATABASE_ENGINE</td>
-      <td>&nbsp;</td>
-      <td>InnoDB</td>
-      <td>The database engine</td>
-    </tr>
-    <tr>
-      <td>DATABASE_CHARSET</td>
-      <td>&nbsp;</td>
-      <td>utfmb4</td>
-      <td>The database charset</td>
-    </tr>
-  </tbody>
-<table>
-
-# API Container
-
-## Configuration
-
-API can be configured via environment variables. These are some of the supported variables.
-
-## General variables
-
-<table>
-  <thead>
-    <tr>
-      <th>Environment</th>
-      <th>Required</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>API_ENDPOINT<i>[_NAME]</i></td>
-      <td>At least once</td>
-      <td>&nbsp;</td>
-      <td>
-        The supported `api` endpoints.<br/>
-        Should follow the format "Name; url"
-      </td>
-    </tr>
-  </tbody>
-<table>
-
-You can manage multiple `api` endpoints using only one instance of `app` container. For example, if you want to manage two instances, you should set two variables that starts with `API_ENDPOINT_`
-
-```
-API_ENDPOINT_STAGING="Staging; http://staging.server.com/_/"
-API_ENDPOINT_PRODUCTION="Production; http://production.server.com/_/"
-```
-
-# Examples
-
-You can check examples under the [examples folder](https://github.com/directus/docker/tree/master/examples) on GitHub.
-
-<p>&nbsp;</p>
 
 ----
 

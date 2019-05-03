@@ -1,0 +1,74 @@
+options:
+  base:
+    type: string
+    usage: The base user/org in which container images will live.
+    environment: IMAGE_BASE
+    default: directus
+  registry:
+    type: string
+    usage: The container registry.
+    environment: CONTAINER_REGISTRY
+    default: ""
+  username:
+    type: string
+    usage: The container regustry username.
+    environment: CONTAINER_USERNAME
+  password:
+    type: string
+    usage: The container registry password.
+    environment: CONTAINER_PASSWORD
+  push:
+    type: bool
+    usage: Should push the image to container registry.
+
+tasks:
+  #
+  # Registry login
+  #
+  login:
+    usage: Registry login
+    description: |
+      Login into container registry to be able to push/pull images from registry.
+    run:
+      - command: echo "${password}" | docker login ${registry} -u "${username}" --password-stdin
+
+  #
+  # Publish a container
+  #
+  push:
+    usage: Push registry image
+    description: |
+      Pushes an image to the container registry
+    args:
+      fqin:
+        type: string
+        usage: The FQIN image value
+    run:
+      - when:
+          equal: { push: true }
+        command: docker push ${fqin}
+      - when:
+          equal: { push: false }
+        command: echo "Skipping image push because there's no --push flag"
+
+  #
+  # Directus building
+  #
+  build-api:
+    usage: Build Directus
+    description: |
+      Fetches combined directus release from GitHub then builds and [pushes] the container.
+    options:
+      release:
+        type: string
+        usage: The release name
+        required: true
+      variant:
+        type: string
+        usage: The variant base image (apache, nginx, ...)
+        default: apache
+        values:
+          - apache
+    run:
+      - command: docker build --build-arg RELEASE=${release} -t ${base}/directus:${release}-${variant} -f ./docker/directus/variants/${variant}/Dockerfile ./docker/directus
+

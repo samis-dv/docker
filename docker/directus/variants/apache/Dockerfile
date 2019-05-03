@@ -4,13 +4,12 @@
 FROM alpine AS builder
 
 ARG RELEASE
-ARG PROJECT=directus
 
 ADD "https://github.com/directus/directus/archive/${RELEASE}.tar.gz" /tmp/
 RUN \
   mkdir /download && \
   tar -xzf /tmp/${RELEASE}.tar.gz -C / && \
-  mv -v "/${PROJECT}-$(echo ${RELEASE} | tr -d v)" "/artifacts"
+  mv -v "/directus-$(echo ${RELEASE} | tr -d v)" "/artifacts"
 
 #
 # Final image
@@ -23,3 +22,5 @@ COPY --from=builder --chown=www-data:www-data /artifacts/ /var/www/
 RUN \
   rm -rf /var/www/html/ && \
   mv /var/www/public/ /var/www/html/
+
+EXPOSE 80
