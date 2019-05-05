@@ -52,9 +52,45 @@ tasks:
         command: echo "Skipping image push because there's no --push flag"
 
   #
+  # Fetches a release from GitHub
+  #
+  fetch:
+    usage: Fetches a release
+    description: |
+      Fetches a project release from GitHub releases
+    args:
+      project:
+        type: string
+        usage: The project name
+        values:
+          - directus
+          - api
+          - app
+    options:
+      release:
+        type: string
+        required: true
+        usage: The release name
+    run:
+      - command: mkdir -p ./docker/${project}/releases/
+      - when:
+          - os:
+              - windows
+          - not-exists:
+            - ./docker/${project}/releases/${release}.tar.gz
+        command: curl -L https://github.com/directus/${project}/archive/${release}.tar.gz > ./docker/${project}/releases/${release}.tar.gz
+      - when:
+          - os:
+              - linux
+              - darwin
+          - not-exists:
+            - ./docker/${project}/releases/${release}.tar.gz
+        command: curl -L https://github.com/directus/${project}/archive/${release}.tar.gz > ./docker/${project}/releases/${release}.tar.gz
+
+  #
   # Directus building
   #
-  build-api:
+  build-directus:
     usage: Build Directus
     description: |
       Fetches combined directus release from GitHub then builds and [pushes] the container.
@@ -70,5 +106,14 @@ tasks:
         values:
           - apache
     run:
+      - task:
+          name: fetch
+          args:
+            - directus
+          options:
+            release: ${release}
       - command: docker build --build-arg RELEASE=${release} -t ${base}/directus:${release}-${variant} -f ./docker/directus/variants/${variant}/Dockerfile ./docker/directus
-
+      - command: docker tag ${base}/directus:${release}-${variant} ${base}/directus:latest-${variant}
+      - when:
+          - equal: { variant: 'apache' }
+        command: docker tag ${base}/directus:${release}-${variant} ${base}/directus:latest
