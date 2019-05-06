@@ -4,33 +4,47 @@ options:
     usage: The base user/org in which container images will live.
     environment: IMAGE_BASE
     default: directus
-  registry:
-    type: string
-    usage: The container registry.
-    environment: CONTAINER_REGISTRY
-    default: ""
-  username:
-    type: string
-    usage: The container regustry username.
-    environment: CONTAINER_USERNAME
-  password:
-    type: string
-    usage: The container registry password.
-    environment: CONTAINER_PASSWORD
   push:
     type: bool
     usage: Should push the image to container registry.
 
 tasks:
   #
-  # Registry login
+  # Building
   #
-  login:
-    usage: Registry login
+  build:
+    usage: Build a project
     description: |
-      Login into container registry to be able to push/pull images from registry.
+      Fetches a project from GitHub then builds and [pushes] the container.
+    args:
+      project:
+        type: string
+        usage: The project name
+        required: true
+        values:
+          #- api
+          #- app
+          - directus
+      variant:
+        type: string
+        usage: The variant base image (apache, nginx, ...)
+        default: apache
+        values:
+          - apache
     run:
-      - command: echo "${password}" | docker login ${registry} -u "${username}" --password-stdin
+      - when:
+          - not-exists: ./docker/${project}/
+        command: "echo \"Unknown project: ${project}\""
+      - when:
+          - not-exists: ./docker/${project}/
+        command: "echo \"Unknown project: ${project}\""
+      - command: docker build -t ${base}/${project}:${variant}-base -f ./docker/${project}/${variant}/Dockerfile ./docker/${project}/${variant}
+      - when:
+          - equal: { push: true }
+        task:
+          name: push
+          args:
+            - ${base}/${project}:${variant}-base
 
   #
   # Publish a container
@@ -50,70 +64,3 @@ tasks:
       - when:
           equal: { push: false }
         command: echo "Skipping image push because there's no --push flag"
-
-  #
-  # Fetches a release from GitHub
-  #
-  fetch:
-    usage: Fetches a release
-    description: |
-      Fetches a project release from GitHub releases
-    args:
-      project:
-        type: string
-        usage: The project name
-        values:
-          - directus
-          - api
-          - app
-    options:
-      release:
-        type: string
-        required: true
-        usage: The release name
-    run:
-      - command: mkdir -p ./docker/${project}/releases/
-      - when:
-          - os:
-              - windows
-          - not-exists:
-            - ./docker/${project}/releases/${release}.tar.gz
-        command: curl -L https://github.com/directus/${project}/archive/${release}.tar.gz > ./docker/${project}/releases/${release}.tar.gz
-      - when:
-          - os:
-              - linux
-              - darwin
-          - not-exists:
-            - ./docker/${project}/releases/${release}.tar.gz
-        command: curl -L https://github.com/directus/${project}/archive/${release}.tar.gz > ./docker/${project}/releases/${release}.tar.gz
-
-  #
-  # Directus building
-  #
-  build-directus:
-    usage: Build Directus
-    description: |
-      Fetches combined directus release from GitHub then builds and [pushes] the container.
-    options:
-      release:
-        type: string
-        usage: The release name
-        required: true
-      variant:
-        type: string
-        usage: The variant base image (apache, nginx, ...)
-        default: apache
-        values:
-          - apache
-    run:
-      - task:
-          name: fetch
-          args:
-            - directus
-          options:
-            release: ${release}
-      - command: docker build --build-arg RELEASE=${release} -t ${base}/directus:${release}-${variant} -f ./docker/directus/variants/${variant}/Dockerfile ./docker/directus
-      - command: docker tag ${base}/directus:${release}-${variant} ${base}/directus:latest-${variant}
-      - when:
-          - equal: { variant: 'apache' }
-        command: docker tag ${base}/directus:${release}-${variant} ${base}/directus:latest

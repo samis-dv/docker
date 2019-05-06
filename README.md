@@ -25,42 +25,18 @@
 
 # Overview
 
-Directus provides several container images that will help you get started. Even though we maintain extra `flavours`, our officially supported image is based on `apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+Directus provides several container images that will help you get started. Even though we maintain extra `variants`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
-# Directus
+# Images
 
-## Variants
+## Directus
 
-- [apache](./docker/directus/variants/apache/Dockerfile)
+- [directus/directus](./docker/directus/variants/apache/Dockerfile)
+- [directus/directus:apache](./docker/directus/variants/apache/Dockerfile)
 
-## Requirements
+# Building
 
-- MySQL compatible database container running
-
-## Configuration
-
-All configuration variables should be changed through environment variables.
-
-### General variables
-
-<table>
-  <thead>
-    <tr>
-      <th>Environment</th>
-      <th>Required</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><i>placeholder</i></td>
-      <td><i>placeholder</i></td>
-      <td><i>placeholder</i></td>
-      <td><i>placeholder</i></td>
-    </tr>
-  </tbody>
-<table>
+In order to
 
 ----
 

@@ -4,9 +4,6 @@
 FROM php:7.3-apache
 
 # Variables
-ARG RELEASE
-
-# Variables
 ENV DIRECTUS_LOAD_ENV=1
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
@@ -20,25 +17,22 @@ RUN \
   docker-php-ext-install gd zip exif pdo pdo_mysql xml fileinfo
 
 # Filesystem & permissions
-COPY ./variants/apache/rootfs/ /
+COPY ./rootfs/ /
 RUN \
   chmod +x /usr/local/bin/custom-entrypoint.sh && \
+  chmod +x /usr/local/bin/install-dependencies.sh && \
   chmod +x /usr/local/bin/install-composer.sh && install-composer.sh && \
-  composer global require hirak/prestissimo
+  composer global require hirak/prestissimo && \
+  rm -rf /var/www
+
+# Port
+EXPOSE 80
 
 # New entrypoint
 ENTRYPOINT ["custom-entrypoint.sh"]
 CMD ["apache2-foreground"]
 
 # Copy files
-ADD ./releases/${RELEASE}.tar.gz /var/
-WORKDIR /var
-RUN \
-  rm -rf /var/www && \
-  cd /var && mv "directus-$(echo ${RELEASE} | tr -d v)" "www" > /dev/null && \
-  chown -R www-data:www-data /var/www
+ONBUILD COPY . /var/www/
+ONBUILD RUN cd /var/www/ && install-dependencies
 
-WORKDIR /var/www
-
-# Automatic export
-EXPOSE 80
