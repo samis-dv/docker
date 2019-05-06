@@ -10,10 +10,15 @@ before_install:
 env:
   - PROJECT=directus VARIANT=apache
 
+jobs:
+  include:
+    - stage: build
+      script: ./tusk build $PROJECT $VARIANT
+    - stage: publish
+      script: ./tusk build --push $PROJECT $VARIANT
+
 stages:
   - name: build
-    script: ./tusk build $PROJECT $VARIANT
     if: branch != master
   - name: publish
-    script: ./tusk build --push $PROJECT $VARIANT
     if: branch = master
