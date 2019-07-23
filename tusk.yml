@@ -12,18 +12,16 @@ tasks:
   #
   # Building
   #
-  build:
-    usage: Build a project
+  base:
+    usage: Builds a base image
     description: |
-      Fetches a project from GitHub then builds and [pushes] the container.
+      Builds a base image and pushes it to the registry if specified
     args:
       project:
         type: string
         usage: The project name
         required: true
         values:
-          #- api
-          #- app
           - directus
       variant:
         type: string
@@ -36,15 +34,43 @@ tasks:
           - not-exists: ./docker/${project}/
         command: "echo \"Unknown project: ${project}\""
       - when:
-          - not-exists: ./docker/${project}/
-        command: "echo \"Unknown project: ${project}\""
-      - command: docker build -t ${base}/${project}:${variant}-base -f ./docker/${project}/${variant}/Dockerfile ./docker/${project}/${variant}
+          - not-exists: ./docker/${project}/base/${variant}/
+        command: "echo \"Unknown variant: ${project}/${variant}\""
+      - command: docker build -t ${base}/${project}:${variant}-base -f ./docker/${project}/base/${variant}/Dockerfile ./docker/${project}/base/${variant}
       - when:
           - equal: { push: true }
         task:
           name: push
           args:
             - ${base}/${project}:${variant}-base
+
+  #
+  # Builds a directus suite image
+  #
+  directus:
+    usage: Builds a directus suite image
+    description: |
+      Builds a directus suite image and pushes it to the registry
+    args:
+      release:
+        type: string
+        usage: The suite version
+        required: truue
+      variant:
+        type: string
+        usage: The variant base image (apache, nginx, ...)
+        default: apache
+    run:
+      - task:
+          name: base
+          args:
+            - directus
+            - ${variant}
+      - command: curl -L https://github.com/directus/directus/archive/${release}.zip -o release.zip --ssl-no-revoke
+      - command: unzip -q -u -d directus release.zip
+      - command: rm -f release.zip
+      - command: docker build --build-arg BASE_IMAGE=${base}/directus:${variant}-base -t ${base}/directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
+      - command: rm -rf ./directus
 
   #
   # Publish a container

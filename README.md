@@ -21,7 +21,7 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: container support is experimental and we're still gathering some more feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
+> **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
@@ -29,14 +29,11 @@ Directus provides several container images that will help you get started. Even 
 
 # Images
 
-## Directus
-
-- [directus/directus](./docker/directus/variants/apache/Dockerfile)
-- [directus/directus:apache](./docker/directus/variants/apache/Dockerfile)
+TODO: write supported image list
 
 # Building
 
-In order to
+TODO: write build instructions
 
 ----
 

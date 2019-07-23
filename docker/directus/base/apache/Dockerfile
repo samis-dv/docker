@@ -19,9 +19,9 @@ RUN \
 # Filesystem & permissions
 COPY ./rootfs/ /
 RUN \
-  chmod +x /usr/local/bin/custom-entrypoint.sh && \
-  chmod +x /usr/local/bin/install-dependencies.sh && \
-  chmod +x /usr/local/bin/install-composer.sh && install-composer.sh && \
+  chmod +x /usr/local/bin/docker-entrypoint && \
+  chmod +x /usr/local/bin/install-dependencies && \
+  chmod +x /usr/local/bin/install-composer && install-composer && \
   composer global require hirak/prestissimo && \
   rm -rf /var/www
 
@@ -29,10 +29,9 @@ RUN \
 EXPOSE 80
 
 # New entrypoint
-ENTRYPOINT ["custom-entrypoint.sh"]
+ENTRYPOINT ["docker-entrypoint"]
 CMD ["apache2-foreground"]
 
 # Copy files
 ONBUILD COPY . /var/www/
 ONBUILD RUN cd /var/www/ && install-dependencies
-
