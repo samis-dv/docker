@@ -55,7 +55,7 @@ tasks:
       release:
         type: string
         usage: The suite version
-        required: truue
+        required: true
       variant:
         type: string
         usage: The variant base image (apache, nginx, ...)
