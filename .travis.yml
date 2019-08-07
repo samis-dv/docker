@@ -13,10 +13,12 @@ git:
   quiet: true
 
 script:
+  - export TRAVIS_TAG=1.0.0
   - chmod +x ./bin/build && ./bin/build
   - docker images
 
 branches:
   only:
+    - refactor/full
     - /^\d+\.\d+\.\d+$/
     - /^\d+\.\d+\.\d+-pre$/
