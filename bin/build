@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -e
+
+function invoke() {
+  $(dirname $0)/$1 ${@:2}
+}
+
+echo "Building core images..."
+
+for KIND in ./docker/core/*
+do
+  KIND=$(basename $KIND)
+  echo "Building [$KIND] core image..."
+  nvoke tusk core --kind $KIND --version $TRAVIS_TAG
+done
+
+for PROJECT in ./docker/base/*
+do
+  for KIND in "$PROJECT/*"
+  do
+    KIND=$(basename $KIND)
+    PROJECT=$(basename $PROJECT)
+    echo "Building [$KIND] base image for project [$PROJECT]..."
+    invoke tusk base --kind $KIND --core $TRAVIS_TAG --project $PROJECT
+  done
+done

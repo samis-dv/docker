@@ -5,26 +5,18 @@ services:
   - docker
 
 before_install:
-  - curl -sL https://git.io/tusk | bash -s -- -b . latest
+  #- curl -sL https://git.io/tusk | bash -s -- -b . latest
+  - echo "$DOCKER_TEST" | docker login -u "$DOCKER_TEST" --password-stdin
 
 git:
   depth: 1
   quiet: true
 
-env:
-  - PROJECT_NAME=directus IMAGE_KIND=apache
-  - PROJECT_NAME=directus IMAGE_KIND=nginx
-  - PROJECT_NAME=directus IMAGE_KIND=caddy
-  - PROJECT_NAME=api IMAGE_KIND=apache
-  - PROJECT_NAME=api IMAGE_KIND=nginx
-  - PROJECT_NAME=api IMAGE_KIND=caddy
-
 script:
-  - echo "tusk base --kind ${IMAGE_KIND} --version ${TRAVIS_TAG}"
-  - echo "tusk project --kind ${IMAGE_KIND} --base ${TRAVIS_TAG} --name ${PROJECT_NAME}"
+  - chmod +x ./bin/build && ./bin/build
+  - docker images
 
 branches:
   only:
-    - refactor/full
     - /^\d+\.\d+\.\d+$/
     - /^\d+\.\d+\.\d+-pre$/

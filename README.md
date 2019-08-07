@@ -21,27 +21,72 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. You can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
+> **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
-Directus provides several container images that will help you get started. Even though we maintain extra `variants`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+Directus provides several container images that will help we get started. Even though we maintain extra `variants`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+
+# Concepts
+
+This repository has several images in it that follows some organization concepts.
+
+## Image kind
+
+We don't want to force anyone to use only `apache`, even though this is the one directus team supports, we know there are many webservers out there and users should be free to use theirs. We can also provide more slim versions of images by switching between OS distributions. A list of possible (just as an example, it's not necessarily implemented yet):
+
+- apache
+- nginx
+- caddy
+- alpine-apache
+- alpine-nginx
+- alpine-caddy
+
+## Core images
+
+Core images are base images that contains only base scripts and the webserver itself, this allows consistency over all distributed projects whenever we make fixes and and/or security updates are applied to webservers/OS.
+
+These images DOES NOT contain any project-specific files besides webserver entrypoints and helper scripts related to the webserver itself.
+
+The core images exists to be extended by base images (api, app, ...), allowing us to further add requirements that an specific project might need.
+
+> Think about these as the "clean" images.
+
+## Base images
+
+Every project has its own base images that inherits the core ones (allowing us to further customize the core with project-specific requirements).
+
+For example if we're building an `api` image using `apache`, we will inherit the core image using `FROM directus/core:base-apache-VERSION` on the first line of its Dockerfile.
+
+These base images are mostly used to simplify the project implementation by adding some `ONBUILD` steps and are meant for more advanced users.
+
+We'll want to use them if we are building our own custom project images as they are ready to accept code from their `ONBUILD` stages.
+
+Dockerfiles inheriting from this base images allows us to add our own extension/hooks and/or install more extensions to PHP.
+
+> Think about these as the "extendable" images.
+
+## Project images
+
+Project images are the images the core directus team will build, support and publish themselves and only contains the default configuration setup. Users will likely use these for their setups.
+
+Think about these as the "just need to run" images.
 
 # Building requirements
 
 - [Docker](https://docs.docker.com/install/)
 - [Tusk](https://github.com/rliebz/tusk)
 
-# Building base images
+# Building core images
 
-You can build base root images (`directus/base`) using the following command:
+We can build core images (`directus/core`) using the following command:
 
 ## Options
 
 | Option | Required | Default | Description |
 |---|---|---|---|
 | **--kind** | No | apache | What kind of image to build (apache, nginx, caddy...) |
-| **--version** | No | latest | You can set the base image version that goes to the tag. |
+| **--version** | No | latest | We can set the base image version that goes to the tag. |
 
 ## Output
 

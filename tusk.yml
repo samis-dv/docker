@@ -18,62 +18,62 @@ tasks:
   #
   # Building
   #
-  base:
-    usage: Builds a base image
+  core:
+    usage: Builds a core image
     description: |
-      Builds a base image and pushes it to the registry if specified
+      Builds a core image and pushes it to the registry if specified
     options:
       kind:
         type: string
-        usage: The base image kind (apache, nginx, ...)
-        default: apache
+        required: true
+        usage: The core image kind (apache, nginx, ...)
         values:
           - apache
       version:
         type: string
-        usage: The tag name of the image
-        default: latest
+        required: true
+        usage: The tag/version of the core image
     run:
       - when:
-          - not-exists: ./docker/base/${kind}/
-        command: "echo \"Unknown base kind: base/${kind}\" && false"
-      - command: docker build -t ${namespace}/${prefix}base:${kind}-${version} -f ./docker/base/${kind}/Dockerfile ./docker/base/${kind}/
+          - not-exists: ./docker/core/${kind}/
+        command: "echo \"Unknown core kind: ${kind}\" && false"
+      - command: docker build -t ${namespace}/${prefix}core:${kind}-${version} -f ./docker/core/${kind}/Dockerfile ./docker/core/${kind}/
       - when:
           - equal: { push: true }
         task:
           name: push
           args:
-            - ${namespace}/${prefix}base:${kind}-${version}
+            - ${namespace}/${prefix}core:${kind}-${version}
 
   #
   # Builds a directus suite image
   #
-  project:
+  base:
     usage: Builds a project base image
     description: |
       Builds a project base image and pushes it to the registry
     options:
-      name:
+      project:
         type: string
         required: true
         usage: Directus project name
         values:
           - directus
-      base:
+      core:
         type: string
-        usage: Directus base version
-        default: latest
+        required: true
+        usage: Directus main base image version
       kind:
         type: string
+        required: true
         usage: The base image kind (apache, nginx, ...)
-        default: apache
         values:
           - apache
     run:
       - when:
-          - not-exists: ./docker/projects/${name}/
-        command: "echo \"Unknown project: ${name}\" && false"
-      - command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}base:${kind}-${base} -t ${namespace}/${prefix}${name}:apache-base-${base} ./docker/projects/${name}/base/apache/
+          - not-exists: ./docker/base/${project}/
+        command: "echo \"Unknown project: ${project}\" && false"
+      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${core} -t ${namespace}/${prefix}${project}:base-${kind}-${core} ./docker/base/${project}/${kind}/
 
       #- when:
       #    - exists: tmp
