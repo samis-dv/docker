@@ -12,7 +12,7 @@ git:
   quiet: true
 
 script:
-  - tusk --help
+  - ./tusk --help
 
 branches:
   only:
