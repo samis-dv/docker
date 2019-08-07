@@ -11,8 +11,13 @@ git:
   depth: 1
   quiet: true
 
+env:
+  - BASE=apache
+  - BASE=nginx
+  - BASE=caddy
+
 script:
-  - ./tusk --help
+  - echo "tusk base --kind ${BASE} --version ${TRAVIS_TAG}"
 
 branches:
   only:
