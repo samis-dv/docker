@@ -11,7 +11,7 @@ for KIND in ./docker/core/*
 do
   KIND=$(basename $KIND)
   echo "Building [$KIND] core image..."
-  nvoke tusk core --kind $KIND --version $TRAVIS_TAG
+  invoke tusk core --kind $KIND --version $TRAVIS_TAG
 done
 
 for PROJECT in ./docker/base/*
