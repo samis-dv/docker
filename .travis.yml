@@ -6,7 +6,7 @@ services:
 
 before_install:
   #- curl -sL https://git.io/tusk | bash -s -- -b . latest
-  - echo "$DOCKER_TEST" | docker login -u "$DOCKER_TEST" --password-stdin
+  - echo "$DOCKER_USERNAME" | docker login -u "$DOCKER_PASSWORD" --password-stdin
 
 git:
   depth: 1
