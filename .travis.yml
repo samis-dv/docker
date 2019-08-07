@@ -7,18 +7,13 @@ services:
 before_install:
   - curl -sL https://git.io/tusk | bash -s -- -b . latest
 
-env:
-  - PROJECT=directus VARIANT=apache
+git:
+  depth: 1
+  quiet: true
 
-jobs:
-  include:
-    - stage: build
-      script: ./tusk build $PROJECT $VARIANT
-    - stage: publish
-      script: ./tusk build --push $PROJECT $VARIANT
+script:
+  - tusk --help
 
-stages:
-  - name: build
-    if: branch != master
-  - name: publish
-    if: branch = master
+branches:
+  only:
+    - /^v\d+\.\d+\.\d+$/

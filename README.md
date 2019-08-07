@@ -27,15 +27,100 @@
 
 Directus provides several container images that will help you get started. Even though we maintain extra `variants`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
-# Images
+# Building requirements
 
-TODO: write supported image list
+- [Docker](https://docs.docker.com/install/)
+- [Tusk](https://github.com/rliebz/tusk)
 
-# Building
+# Building base images
 
-TODO: write build instructions
+You can build base root images (`directus/base`) using the following command:
 
-----
+## Options
+
+| Option | Required | Default | Description |
+|---|---|---|---|
+| **--kind** | No | apache | What kind of image to build (apache, nginx, caddy...) |
+| **--version** | No | latest | You can set the base image version that goes to the tag. |
+
+## Output
+
+This command builds and tags a base image and sets its tag name with the following format:
+
+```
+${namespace}/${prefix}base:${kind}-${version}
+```
+
+## Examples
+
+### Build default base image
+
+```
+$ tusk base
+...
+Successfully tagged directus/base:apache-latest
+```
+
+### Build nginx base
+
+```
+$ tusk base --kind nginx
+...
+Successfully tagged directus/base:nginx-latest
+```
+
+### Build nginx base and put a version in it
+
+```
+$ tusk base --kind nginx --version custom
+...
+Successfully tagged directus/base:nginx-custom
+```
+
+------------
+
+# Global options
+
+| Option | Default | Description |
+|---|---|---|
+| **--prefix** | | The project image prefix `namespace/{prefix}project:tag`|
+| **--namespace** | directus | The image namespace `{namespace}/project:tag`) |
+
+## Examples
+
+### Build with namespace
+
+```
+$ tusk base --namespace wolfulus
+...
+Successfully tagged wolfulus/base:apache-latest
+```
+
+### Build with prefix
+
+```
+$ tusk base --prefix hello-
+...
+Successfully tagged directus/hello-base:apache-latest
+```
+
+### Build with namespace and prefix
+
+```
+$ tusk base --namespace wolfulus --prefix directus-
+...
+Successfully tagged wolfulus/directus-base:apache-latest
+```
+
+### Build to another registry
+
+```
+$ tusk base --namespace registry.gitlab.com/wolfulus/some_project
+...
+Successfully tagged registry.gitlab.com/wolfulus/some_project/base:apache-latest
+```
+
+------------
 
 <p align="center">
   Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2018, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.

@@ -1,12 +1,18 @@
 options:
-  base:
+  namespace:
     type: string
-    usage: The base user/org in which container images will live.
-    environment: IMAGE_BASE
+    usage: The images namespace user/org (defaults to directus).
+    environment: DIRECTUS_IMAGE_NAMESPACE
     default: directus
+  prefix:
+    type: string
+    usage: The image prefix to use
+    environment: DIRECTUS_IMAGE_PREFIX
+    default: ""
   push:
     type: bool
-    usage: Should push the image to container registry.
+    usage: Pushes the containers to the registry if specified.
+    default: false
 
 tasks:
   #
@@ -16,61 +22,68 @@ tasks:
     usage: Builds a base image
     description: |
       Builds a base image and pushes it to the registry if specified
-    args:
-      project:
+    options:
+      kind:
         type: string
-        usage: The project name
-        required: true
-        values:
-          - directus
-      variant:
-        type: string
-        usage: The variant base image (apache, nginx, ...)
+        usage: The base image kind (apache, nginx, ...)
         default: apache
         values:
           - apache
+      version:
+        type: string
+        usage: The tag name of the image
+        default: latest
     run:
       - when:
-          - not-exists: ./docker/${project}/
-        command: "echo \"Unknown project: ${project}\""
-      - when:
-          - not-exists: ./docker/${project}/base/${variant}/
-        command: "echo \"Unknown variant: ${project}/${variant}\""
-      - command: docker build -t ${base}/${project}:${variant}-base -f ./docker/${project}/base/${variant}/Dockerfile ./docker/${project}/base/${variant}
+          - not-exists: ./docker/base/${kind}/
+        command: "echo \"Unknown base kind: base/${kind}\" && false"
+      - command: docker build -t ${namespace}/${prefix}base:${kind}-${version} -f ./docker/base/${kind}/Dockerfile ./docker/base/${kind}/
       - when:
           - equal: { push: true }
         task:
           name: push
           args:
-            - ${base}/${project}:${variant}-base
+            - ${namespace}/${prefix}base:${kind}-${version}
 
   #
   # Builds a directus suite image
   #
-  directus:
-    usage: Builds a directus suite image
+  project:
+    usage: Builds a project base image
     description: |
-      Builds a directus suite image and pushes it to the registry
-    args:
-      release:
+      Builds a project base image and pushes it to the registry
+    options:
+      name:
         type: string
-        usage: The suite version
         required: true
-      variant:
+        usage: Directus project name
+        values:
+          - directus
+      base:
         type: string
-        usage: The variant base image (apache, nginx, ...)
+        usage: Directus base version
+        default: latest
+      kind:
+        type: string
+        usage: The base image kind (apache, nginx, ...)
         default: apache
+        values:
+          - apache
     run:
-      - task:
-          name: base
-          args:
-            - directus
-            - ${variant}
-      - command: curl -L https://github.com/directus/directus/archive/${release}.zip -o release.zip --ssl-no-revoke
-      - command: unzip -q -u -d directus release.zip
-      - command: rm -f release.zip
-      - command: docker build --build-arg BASE_IMAGE=${base}/directus:${variant}-base -t ${base}/directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
-      - command: rm -rf ./directus
+      - when:
+          - not-exists: ./docker/projects/${name}/
+        command: "echo \"Unknown project: ${name}\" && false"
+      - command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}base:${kind}-${base} -t ${namespace}/${prefix}${name}:apache-base-${base} ./docker/projects/${name}/base/apache/
+
+      #- when:
+      #    - exists: tmp
+      #  command: rm -rf ./tmp
+      #- command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}directus:${variant}-base -t ${namespace}/${prefix}directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
+      #- command: curl -L https://github.com/directus/directus/archive/${release}.zip -o release.zip --ssl-no-revoke
+      #- command: unzip -q -u -d tmp release.zip
+      #- command: rm -f release.zip
+      #- command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}directus:${variant}-base -t ${namespace}/${prefix}directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
+      #- command: rm -rf ./tmp
 
   #
   # Publish a container
