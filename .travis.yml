@@ -26,4 +26,5 @@ script:
 branches:
   only:
     - refactor/full
-    - /^v\d+\.\d+\.\d+$/
+    - /^\d+\.\d+\.\d+$/
+    - /^\d+\.\d+\.\d+-pre$/
