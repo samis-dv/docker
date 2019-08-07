@@ -12,12 +12,16 @@ git:
   quiet: true
 
 env:
-  - BASE=apache
-  - BASE=nginx
-  - BASE=caddy
+  - PROJECT_NAME=directus IMAGE_KIND=apache
+  - PROJECT_NAME=directus IMAGE_KIND=nginx
+  - PROJECT_NAME=directus IMAGE_KIND=caddy
+  - PROJECT_NAME=api IMAGE_KIND=apache
+  - PROJECT_NAME=api IMAGE_KIND=nginx
+  - PROJECT_NAME=api IMAGE_KIND=caddy
 
 script:
-  - echo "tusk base --kind ${BASE} --version ${TRAVIS_TAG}"
+  - echo "tusk base --kind ${IMAGE_KIND} --version ${TRAVIS_TAG}"
+  - echo "tusk project --kind ${IMAGE_KIND} --base ${TRAVIS_TAG} --name ${PROJECT_NAME}"
 
 branches:
   only:
