@@ -53,7 +53,7 @@ The core images exists to be extended by base images (api, app, ...), allowing u
 
 > Think about these as the "clean" images.
 
-### Tags
+### FQIN
 
 ```
 ${namespace}/${prefix}core:base-${kind}-${version}
@@ -86,7 +86,7 @@ Dockerfiles inheriting from this base images allows us to add our own extension/
 
 > Think about these as the "extendable" images.
 
-### Tags
+### FQIN
 
 ```
 ${namespace}/${prefix}${project}:${kind}-${version}
@@ -112,7 +112,7 @@ Official images are the images the directus team will build, support and distrib
 
 Think about these as the "I just want to use it" images.
 
-### Tags
+### FQIN
 
 ```
 directus/{project}:${kind}-${version}
@@ -202,9 +202,11 @@ Successfully tagged directus/api:base-apache-1.0.0
 
 ----------
 
-## Examples
+## FAQ
 
-### Build with namespace
+### How do I change my image username?
+
+Use `--namespace` to set the username and/or the registry.
 
 ```
 $ tusk core --namespace wolfulus \
@@ -214,7 +216,21 @@ $ tusk core --namespace wolfulus \
 Successfully tagged wolfulus/core:apache-latest
 ```
 
-### Build with prefix
+### How to set another registry?
+
+Use `--namespace` to set the username and/or the registry.
+
+```
+$ tusk core --namespace registry.gitlab.com/wolfulus/d6s \
+            --kind apache \
+            --version latest
+...
+Successfully tagged registry.gitlab.com/wolfulus/d6s/core:apache-latest
+```
+
+### How do I set an image prefix?
+
+Use `--prefix` to set image prefixes.
 
 ```
 $ tusk core --prefix hello- \
@@ -224,7 +240,9 @@ $ tusk core --prefix hello- \
 Successfully tagged directus/hello-core:apache-latest
 ```
 
-### Build with namespace and prefix
+### Can I set both namespace and prefix?
+
+Yes you can.
 
 ```
 $ tusk core --namespace wolfulus \
@@ -235,15 +253,41 @@ $ tusk core --namespace wolfulus \
 Successfully tagged wolfulus/directus-base:apache-latest
 ```
 
-### Build to another registry
+## How do I build a custom base image?
+
+### Select a core image or build your own
 
 ```
-$ tusk core --namespace registry.gitlab.com/wolfulus/d6s \
+$ tusk core --namespace wolfulus \
+            --prefix my-custom-directus-
             --kind apache \
-            --version latest
+            --version 0.0.1
 ...
-Successfully tagged registry.gitlab.com/wolfulus/d6s/core:apache-latest
+Successfully tagged wolfulus/my-custom-directus-core:apache-0.0.1
 ```
+
+### Extend the core image and add your steps
+
+```docker
+FROM wolfulus/my-custom-directus-core:apache-0.0.1
+# Add custom steps
+```
+
+## How do I build a project using my base image?
+
+> ...
+
+## How do I install additional PHP modules?
+
+> ...
+
+## How do I install additional PHP extensions?
+
+> ...
+
+## How do I add my own extensions?
+
+> ...
 
 ----------
 
