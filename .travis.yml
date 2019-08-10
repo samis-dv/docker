@@ -4,8 +4,8 @@ language: minimal
 services:
   - docker
 
-#before_install:
-#  - echo "$DOCKER_USERNAME" | docker login -u "$DOCKER_PASSWORD" --password-stdin
+before_install:
+  - echo "$DOCKER_USERNAME" | docker login -u "$DOCKER_PASSWORD" --password-stdin
 
 git:
   depth: 1
