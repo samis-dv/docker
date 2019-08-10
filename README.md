@@ -62,7 +62,7 @@ ${namespace}/${prefix}core:base-${kind}-${version}
 #### Example
 
 | Variable | Value |
-|--|--|--|
+|--|--|
 | **namespace** | registry.gitlab.com/user/project |
 | **prefix** | d6s- |
 | **kind** | apache |
@@ -95,7 +95,7 @@ ${namespace}/${prefix}${project}:${kind}-${version}
 #### Example
 
 | Variable | Value |
-|--|--|--|
+|--|--|
 | **namespace** | gcr.io/my-agency |
 | **prefix** | project1- |
 | **project** | directus |
@@ -121,7 +121,7 @@ directus/{project}:${kind}-${version}
 #### Example
 
 | Variable | Value |
-|--|--|--|
+|--|--|
 | **project** | api |
 | **kind** | apache |
 | **version** | v2.4.0 |
@@ -142,9 +142,10 @@ directus/api:apache-v2.4.0
 These options can be passed to any command below in order to customize the way images are tagged.
 
 | Option | Default | Description |
-|---|---|---|
+|--|--|--|
 | **--prefix** | | The image prefix |
 | **--namespace** | directus | The image namespace (registry/username) |
+| **--push** | false | Flag to tell that the image should be pushed |
 
 ----------
 
@@ -155,7 +156,7 @@ We can build [core images](#core-images) using the command `tusk core`.
 ### Options
 
 | Option | Required | Default | Description |
-|---|---|---|---|
+|--|--|--|--|
 | **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
 | **--version** | Yes | | We can set the base image version that goes to the tag. |
 
@@ -184,7 +185,7 @@ All base images depends on a core image, so we need either build a core image fi
 ### Options
 
 | Option | Required | Default | Description |
-|---|---|---|---|
+|--|--|--|--|
 | **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
 | **--version** | Yes | | Which version of core image to use |
 | **--project** | Yes | | What kind of image to build (apache, nginx, caddy...) |
