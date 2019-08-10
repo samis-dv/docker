@@ -27,8 +27,6 @@ tasks:
         type: string
         required: true
         usage: The core image kind (apache, nginx, ...)
-        values:
-          - apache
       version:
         type: string
         required: true
@@ -57,8 +55,6 @@ tasks:
         type: string
         required: true
         usage: Directus project name
-        values:
-          - directus
       version:
         type: string
         required: true
