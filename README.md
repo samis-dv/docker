@@ -31,10 +31,11 @@ Directus provides several container images that will help we get started. Even t
 
 This repository has several images in it that follows some organization concepts.
 
-## Image kind
+## Image kinds
 
-We don't want to force anyone to use only `apache`, even though this is the one directus team supports, we know there are many webservers out there and users should be free to use theirs. We can also provide more slim versions of images by switching between OS distributions. A list of possible (just as an example, it's not necessarily implemented yet):
+We don't want to force anyone to use only `apache` and even though this is the one directus team officially supports, we know there are many webservers out there and we should be free to use the ones we like. We can also provide more slim versions of images by switching between OS distributions. A list of possible (just as an example, it's not necessarily implemented):
 
+- alpine
 - apache
 - nginx
 - caddy
@@ -52,6 +53,25 @@ The core images exists to be extended by base images (api, app, ...), allowing u
 
 > Think about these as the "clean" images.
 
+### Tags
+
+```
+${namespace}/${prefix}core:base-${kind}-${version}
+```
+
+#### Example
+
+| Variable | Value |
+|--|--|--|
+| **namespace** | registry.gitlab.com/user/project |
+| **prefix** | d6s- |
+| **kind** | apache |
+| **version** | latest |
+
+```
+registry.gitlab.com/user/project/d6s-core:base-apache-latest
+```
+
 ## Base images
 
 Every project has its own base images that inherits the core ones (allowing us to further customize the core with project-specific requirements).
@@ -66,93 +86,150 @@ Dockerfiles inheriting from this base images allows us to add our own extension/
 
 > Think about these as the "extendable" images.
 
-## Project images
+### Tags
 
-Project images are the images the core directus team will build, support and publish themselves and only contains the default configuration setup. Users will likely use these for their setups.
+```
+${namespace}/${prefix}${project}:${kind}-${version}
+```
 
-Think about these as the "just need to run" images.
+#### Example
 
-# Building requirements
+| Variable | Value |
+|--|--|--|
+| **namespace** | gcr.io/my-agency |
+| **prefix** | project1- |
+| **project** | directus |
+| **kind** | apache |
+| **version** | latest |
+
+```
+gcr.io/my-agency/project1-directus:apache-latest
+```
+
+## Official images
+
+Official images are the images the directus team will build, support and distribute themselves and only contains the default configuration setup. Users will likely use these for their simple setups.
+
+Think about these as the "I just want to use it" images.
+
+### Tags
+
+```
+directus/{project}:${kind}-${version}
+```
+
+#### Example
+
+| Variable | Value |
+|--|--|--|
+| **project** | api |
+| **kind** | apache |
+| **version** | v2.4.0 |
+
+```
+directus/api:apache-v2.4.0
+```
+
+# Building
+
+## Requirements
 
 - [Docker](https://docs.docker.com/install/)
 - [Tusk](https://github.com/rliebz/tusk)
 
-# Building core images
+## Global options
 
-We can build core images (`directus/core`) using the following command:
-
-## Options
-
-| Option | Required | Default | Description |
-|---|---|---|---|
-| **--kind** | No | apache | What kind of image to build (apache, nginx, caddy...) |
-| **--version** | No | latest | We can set the base image version that goes to the tag. |
-
-## Output
-
-This command builds and tags a base image and sets its tag name with the following format:
-
-```
-${namespace}/${prefix}base:${kind}-${version}
-```
-
-## Examples
-
-### Build default base image
-
-```
-$ tusk base
-...
-Successfully tagged directus/base:apache-latest
-```
-
-### Build nginx base
-
-```
-$ tusk base --kind nginx
-...
-Successfully tagged directus/base:nginx-latest
-```
-
-### Build nginx base and put a version in it
-
-```
-$ tusk base --kind nginx --version custom
-...
-Successfully tagged directus/base:nginx-custom
-```
-
-------------
-
-# Global options
+These options can be passed to any command below in order to customize the way images are tagged.
 
 | Option | Default | Description |
 |---|---|---|
-| **--prefix** | | The project image prefix `namespace/{prefix}project:tag`|
-| **--namespace** | directus | The image namespace `{namespace}/project:tag`) |
+| **--prefix** | | The image prefix |
+| **--namespace** | directus | The image namespace (registry/username) |
+
+----------
+
+## Building core images
+
+We can build [core images](#core-images) using the command `tusk core`.
+
+### Options
+
+| Option | Required | Default | Description |
+|---|---|---|---|
+| **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
+| **--version** | Yes | | We can set the base image version that goes to the tag. |
+
+### Examples
+
+#### Build a nginx image
+
+```
+$ tusk core --kind nginx --version v1
+...
+Successfully tagged directus/core:nginx-v1
+```
+
+----------
+
+## Building base images
+
+We can build [base images](#base-images) using the command `tusk base`.
+
+### Dependencies
+
+All base images depends on a core image, so we need either build a core image first or have have pull access to an already built one.
+
+> ⚠️ Note that the core image will follow the `namespace` and `prefix` options as well, so changing them means you'll need to also build your own core images.
+
+### Options
+
+| Option | Required | Default | Description |
+|---|---|---|---|
+| **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
+| **--version** | Yes | | Which version of core image to use |
+| **--project** | Yes | | What kind of image to build (apache, nginx, caddy...) |
+
+### Examples
+
+#### Build an api image based on apache
+
+```
+$ tusk base --project api --kind apache --version 1.0.0
+...
+Successfully tagged directus/api:base-apache-1.0.0
+```
+
+----------
 
 ## Examples
 
 ### Build with namespace
 
 ```
-$ tusk base --namespace wolfulus
+$ tusk core --namespace wolfulus \
+            --kind apache \
+            --version latest
 ...
-Successfully tagged wolfulus/base:apache-latest
+Successfully tagged wolfulus/core:apache-latest
 ```
 
 ### Build with prefix
 
 ```
-$ tusk base --prefix hello-
+$ tusk core --prefix hello- \
+            --kind apache \
+            --version latest
 ...
-Successfully tagged directus/hello-base:apache-latest
+Successfully tagged directus/hello-core:apache-latest
 ```
 
 ### Build with namespace and prefix
 
 ```
-$ tusk base --namespace wolfulus --prefix directus-
+$ tusk core --namespace wolfulus \
+            --prefix directus- \
+            --kind apache \
+            --version latest
 ...
 Successfully tagged wolfulus/directus-base:apache-latest
 ```
@@ -160,12 +237,14 @@ Successfully tagged wolfulus/directus-base:apache-latest
 ### Build to another registry
 
 ```
-$ tusk base --namespace registry.gitlab.com/wolfulus/some_project
+$ tusk core --namespace registry.gitlab.com/wolfulus/d6s \
+            --kind apache \
+            --version latest
 ...
-Successfully tagged registry.gitlab.com/wolfulus/some_project/base:apache-latest
+Successfully tagged registry.gitlab.com/wolfulus/d6s/core:apache-latest
 ```
 
-------------
+----------
 
 <p align="center">
   Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2018, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.

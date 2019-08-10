@@ -6,7 +6,6 @@ FROM php:7.3-apache
 #
 # Variables
 #
-ENV DIRECTUS_LOAD_ENV=1
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 #

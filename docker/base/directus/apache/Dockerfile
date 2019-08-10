@@ -5,10 +5,10 @@ ARG CORE_IMAGE
 FROM ${CORE_IMAGE}
 
 #
-# Some additional setup for apache
+# Project specific configurations
 #
 
-# None yet
+ENV DIRECTUS_LOAD_ENV=1
 
 #
 # Copy files

@@ -42,8 +42,8 @@ tasks:
           - equal: { push: true }
         task:
           name: push
-          args:
-            - ${namespace}/${prefix}core:${kind}-${version}
+          options:
+            fqin: ${namespace}/${prefix}core:${kind}-${version}
 
   #
   # Builds a directus suite image
@@ -59,10 +59,10 @@ tasks:
         usage: Directus project name
         values:
           - directus
-      core:
+      version:
         type: string
         required: true
-        usage: Directus main base image version
+        usage: Directus core image version
       kind:
         type: string
         required: true
@@ -73,17 +73,13 @@ tasks:
       - when:
           - not-exists: ./docker/base/${project}/
         command: "echo \"Unknown project: ${project}\" && false"
-      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${core} -t ${namespace}/${prefix}${project}:base-${kind}-${core} ./docker/base/${project}/${kind}/
-
-      #- when:
-      #    - exists: tmp
-      #  command: rm -rf ./tmp
-      #- command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}directus:${variant}-base -t ${namespace}/${prefix}directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
-      #- command: curl -L https://github.com/directus/directus/archive/${release}.zip -o release.zip --ssl-no-revoke
-      #- command: unzip -q -u -d tmp release.zip
-      #- command: rm -f release.zip
-      #- command: docker build --build-arg BASE_IMAGE=${namespace}/${prefix}directus:${variant}-base -t ${namespace}/${prefix}directus:${release}-${variant} -f ./docker/directus/main/Dockerfile ./directus/directus-${release}/
-      #- command: rm -rf ./tmp
+      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${version} -t ${namespace}/${prefix}${project}:base-${kind}-${version} ./docker/base/${project}/${kind}/
+      - when:
+          - equal: { push: true }
+        task:
+          name: push
+          options:
+            fqin: ${namespace}/${prefix}${project}:base-${kind}-${version}
 
   #
   # Publish a container
@@ -92,7 +88,7 @@ tasks:
     usage: Push registry image
     description: |
       Pushes an image to the container registry
-    args:
+    options:
       fqin:
         type: string
         usage: The FQIN image value
