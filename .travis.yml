@@ -18,6 +18,7 @@ script:
 
 branches:
   only:
+    - master
     - develop
     - /^\d+\.\d+\.\d+$/
     - /^\d+\.\d+\.\d+-pre$/
