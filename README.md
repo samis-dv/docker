@@ -136,6 +136,28 @@ directus/api:apache-v2.4.0
 
 - [Docker](https://docs.docker.com/install/)
 - [Tusk](https://github.com/rliebz/tusk)
+- Bash
+
+## Sandbox
+
+You can start a development sandbox if you don't have `tusk` or the requirements to run the build scripts (such as bash). All you need is `docker` and `docker-compose`.
+This allows you to invoke and debug `tusk` tasks and bash scripts.
+
+### Starting a sandbox with `tusk`
+
+```
+$ tusk dev
+...
+root@/directus $ _
+```
+
+### Starting a sandbox with `docker-compose`
+
+```
+$ docker-compose -f ./sandbox.yml run --rm sandbox
+...
+root@/directus $ _
+```
 
 ## Global options
 
@@ -145,7 +167,6 @@ These options can be passed to any command below in order to customize the way i
 |--|--|--|
 | **--prefix** | | The image prefix |
 | **--namespace** | directus | The image namespace (registry/username) |
-| **--push** | false | Flag to tell that the image should be pushed |
 
 ----------
 

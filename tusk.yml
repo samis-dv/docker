@@ -95,3 +95,10 @@ tasks:
       - when:
           equal: { push: false }
         command: echo "Skipping image push because there's no --push flag"
+
+  dev:
+    usage: Development environment
+    description: |
+      Starts a development environment
+    run:
+      - command: docker-compose -f ./sandbox.yml run --rm sandbox

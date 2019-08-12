@@ -12,9 +12,7 @@ git:
   quiet: true
 
 script:
-  - export TRAVIS_TAG=1.0.0
   - ./bin/build
-  - docker images
 
 branches:
   only:

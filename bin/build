@@ -7,12 +7,14 @@ function invoke() {
 
 echo ""
 echo "Building images..."
+echo "> TRAVIS_TAG = \"${TRAVIS_TAG}\""
+echo "> TRAVIS_BRANCH = \"${TRAVIS_BRANCH}\""
 
 export VERSION_PUSH=""
 export VERSION_MAJOR="${TRAVIS_BRANCH}"
-export VERSION_MINOR=""
-export VERSION_PATCH=""
-export VERSION_PRE=""
+export VERSION_MINOR="${TRAVIS_BRANCH}"
+export VERSION_PATCH="${TRAVIS_BRANCH}"
+export VERSION_PRE="${TRAVIS_BRANCH}"
 export VERSION="${TRAVIS_BRANCH}"
 
 if [ "${TRAVIS_TAG}" != "" ]; then
@@ -64,7 +66,7 @@ do
     echo "> Building [${KIND}] base image for project [${PROJECT}]..."
 
     if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-      invoke tusk base --kind ${KIND} --core ${VERSION_PATCH} --project ${PROJECT}
+      invoke tusk base --kind ${KIND} --version ${VERSION_PATCH} --project ${PROJECT}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
@@ -75,7 +77,7 @@ do
         echo docker push directus/${PROJECT}:base-${KIND}-latest
       fi
     else
-      invoke tusk base --kind ${KIND} --core ${VERSION_PRE} --project ${PROJECT}
+      invoke tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
       if [ "${VERSION_PUSH}" == "--push" ]; then
         echo docker push directus/core:${KIND}-${VERSION_PRE}
       fi
@@ -84,4 +86,7 @@ do
 done
 
 echo ""
-echo docker images
+echo "Output images"
+echo ""
+docker images --format "{{.Repository}}:{{.Tag}}" | grep directus | sort
+echo ""
