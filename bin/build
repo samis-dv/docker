@@ -43,15 +43,15 @@ do
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MAJOR}
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-latest
     if [ "${VERSION_PUSH}" == "--push" ]; then
-      echo docker push directus/core:${KIND}-${VERSION_PATCH}
-      echo docker push directus/core:${KIND}-${VERSION_MINOR}
-      echo docker push directus/core:${KIND}-${VERSION_MAJOR}
-      echo docker push directus/core:${KIND}-latest
+      docker push directus/core:${KIND}-${VERSION_PATCH}
+      docker push directus/core:${KIND}-${VERSION_MINOR}
+      docker push directus/core:${KIND}-${VERSION_MAJOR}
+      docker push directus/core:${KIND}-latest
     fi
   else
     invoke tusk core --kind ${KIND} --version ${VERSION_PRE}
     if [ "${VERSION_PUSH}" == "--push" ]; then
-      echo docker push directus/core:${KIND}-${VERSION_PRE}
+      docker push directus/core:${KIND}-${VERSION_PRE}
     fi
   fi
 done
@@ -71,15 +71,15 @@ do
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
       if [ "${VERSION_PUSH}" == "--push" ]; then
-        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_PATCH}
-        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
-        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
-        echo docker push directus/${PROJECT}:base-${KIND}-latest
+        docker push directus/${PROJECT}:base-${KIND}-${VERSION_PATCH}
+        docker push directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
+        docker push directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
+        docker push directus/${PROJECT}:base-${KIND}-latest
       fi
     else
       invoke tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
       if [ "${VERSION_PUSH}" == "--push" ]; then
-        echo docker push directus/core:${KIND}-${VERSION_PRE}
+        docker push directus/core:${KIND}-${VERSION_PRE}
       fi
     fi
   done
