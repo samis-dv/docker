@@ -25,11 +25,18 @@
 
 # Overview
 
-Directus provides several container images that will help we get started. Even though we maintain extra `variants`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+Directus provides several container images that will help we get started. Even though we maintain extra `kinds`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
 # Concepts
 
 This repository has several images in it that follows some organization concepts.
+
+We've organized our docker images in a way that:
+
+- We do a better use of layer caching
+- We avoid as much code duplication on dockerfiles as possible
+- We can make security updates (os/webserver) without modifying application images code
+- We provide a easy way for the end user to extend images
 
 ## Image kinds
 
