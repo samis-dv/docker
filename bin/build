@@ -5,22 +5,83 @@ function invoke() {
   $(dirname $0)/$1 ${@:2}
 }
 
-echo "Building core images..."
+echo ""
+echo "Building images..."
+
+export VERSION_PUSH=""
+export VERSION_MAJOR="${TRAVIS_BRANCH}"
+export VERSION_MINOR=""
+export VERSION_PATCH=""
+export VERSION_PRE=""
+export VERSION="${TRAVIS_BRANCH}"
+
+if [ "${TRAVIS_TAG}" != "" ]; then
+  export VERSION_PUSH="--push"
+  export VERSION_MAJOR="$(invoke semver get major ${TRAVIS_TAG})"
+  export VERSION_MINOR="${VERSION_MAJOR}.$(invoke semver get minor ${TRAVIS_TAG})"
+  export VERSION_PATCH="${VERSION_MINOR}.$(invoke semver get patch ${TRAVIS_TAG})"
+  export VERSION_PRE="${VERSION_PATCH}-$(invoke semver get prerel ${TRAVIS_TAG})"
+  if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
+    echo "> Pushing version ${VERSION_MAJOR}, ${VERSION_MINOR} and ${VERSION_PATCH} (release)"
+  else
+    echo "> Pushing version ${VERSION_PRE} (prerelease)"
+  fi
+else
+  echo "> Not a release. Pushes are going to be skipped."
+fi
 
 for KIND in ./docker/core/*
 do
-  KIND=$(basename $KIND)
-  echo "Building [$KIND] core image..."
-  invoke tusk core --kind $KIND --version $TRAVIS_TAG
+  KIND=$(basename ${KIND})
+  echo ""
+  echo "> Building [${KIND}] core image..."
+  if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
+    invoke tusk core --kind ${KIND} --version ${VERSION_PATCH}
+    docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MINOR}
+    docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MAJOR}
+    docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-latest
+    if [ "${VERSION_PUSH}" == "--push" ]; then
+      echo docker push directus/core:${KIND}-${VERSION_PATCH}
+      echo docker push directus/core:${KIND}-${VERSION_MINOR}
+      echo docker push directus/core:${KIND}-${VERSION_MAJOR}
+      echo docker push directus/core:${KIND}-latest
+    fi
+  else
+    invoke tusk core --kind ${KIND} --version ${VERSION_PRE}
+    if [ "${VERSION_PUSH}" == "--push" ]; then
+      echo docker push directus/core:${KIND}-${VERSION_PRE}
+    fi
+  fi
 done
 
 for PROJECT in ./docker/base/*
 do
-  for KIND in "$PROJECT/*"
+  for KIND in "${PROJECT}/*"
   do
-    KIND=$(basename $KIND)
-    PROJECT=$(basename $PROJECT)
-    echo "Building [$KIND] base image for project [$PROJECT]..."
-    invoke tusk base --kind $KIND --core $TRAVIS_TAG --project $PROJECT
+    KIND=$(basename ${KIND})
+    PROJECT=$(basename ${PROJECT})
+    echo ""
+    echo "> Building [${KIND}] base image for project [${PROJECT}]..."
+
+    if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
+      invoke tusk base --kind ${KIND} --core ${VERSION_PATCH} --project ${PROJECT}
+      docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
+      docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
+      docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
+      if [ "${VERSION_PUSH}" == "--push" ]; then
+        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_PATCH}
+        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
+        echo docker push directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
+        echo docker push directus/${PROJECT}:base-${KIND}-latest
+      fi
+    else
+      invoke tusk base --kind ${KIND} --core ${VERSION_PRE} --project ${PROJECT}
+      if [ "${VERSION_PUSH}" == "--push" ]; then
+        echo docker push directus/core:${KIND}-${VERSION_PRE}
+      fi
+    fi
   done
 done
+
+echo ""
+echo docker images
