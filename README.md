@@ -56,7 +56,7 @@ The core images exists to be extended by base images (api, app, ...), allowing u
 ### FQIN
 
 ```
-${namespace}/${prefix}core:base-${kind}-${version}
+${namespace}/${prefix}core:${kind}-${version}
 ```
 
 #### Example
@@ -69,7 +69,7 @@ ${namespace}/${prefix}core:base-${kind}-${version}
 | **version** | latest |
 
 ```
-registry.gitlab.com/user/project/d6s-core:base-apache-latest
+registry.gitlab.com/user/project/d6s-core:apache-latest
 ```
 
 ## Base images
