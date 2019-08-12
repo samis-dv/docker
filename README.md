@@ -140,8 +140,9 @@ directus/api:apache-v2.4.0
 
 ## Sandbox
 
-You can start a development sandbox if you don't have `tusk` or the requirements to run the build scripts (such as bash). All you need is `docker` and `docker-compose`.
-This allows you to invoke and debug `tusk` tasks and bash scripts.
+You can start a development "machine" if you don't have `tusk`, the requirements to run the build scripts (such as bash) and/or is on a Windows machine without WSL. This allows you to invoke and debug `tusk` tasks and bash scripts.
+
+All you need is `docker` and `docker-compose`.
 
 ### Starting a sandbox with `tusk`
 
