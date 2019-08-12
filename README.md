@@ -136,29 +136,7 @@ directus/api:apache-v2.4.0
 
 - [Docker](https://docs.docker.com/install/)
 - [Tusk](https://github.com/rliebz/tusk)
-- Bash
-
-## Sandbox
-
-You can start a development "machine" if you don't have `tusk`, the requirements to run the build scripts (such as bash) and/or is on a Windows machine without WSL. This allows you to invoke and debug `tusk` tasks and bash scripts.
-
-All you need is `docker` and `docker-compose`.
-
-### Starting a sandbox with `tusk`
-
-```
-$ tusk dev
-...
-root@/directus $ _
-```
-
-### Starting a sandbox with `docker-compose`
-
-```
-$ docker-compose -f ./sandbox.yml run --rm sandbox
-...
-root@/directus $ _
-```
+- bash
 
 ## Global options
 
@@ -220,6 +198,30 @@ All base images depends on a core image, so we need either build a core image fi
 $ tusk base --project api --kind apache --version 1.0.0
 ...
 Successfully tagged directus/api:base-apache-1.0.0
+```
+
+----------
+
+# Sandbox
+
+You can start a development "machine" if you don't have `tusk`, the requirements to run the build scripts (such as bash) and/or is on a Windows machine without WSL. This allows you to invoke and debug `tusk` tasks and bash scripts.
+
+All you need is `docker` and `docker-compose`.
+
+## Starting a sandbox with `tusk`
+
+```
+$ tusk dev
+...
+root@/directus $ _
+```
+
+## Starting a sandbox with `docker-compose`
+
+```
+$ docker-compose -f ./sandbox.yml run --rm sandbox
+...
+root@/directus $ _
 ```
 
 ----------
