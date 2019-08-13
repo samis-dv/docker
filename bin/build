@@ -79,7 +79,7 @@ do
     else
       invoke tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
       if [ "${VERSION_PUSH}" == "--push" ]; then
-        docker push directus/core:${KIND}-${VERSION_PRE}
+        docker push directus/${PROJECT}:base-${KIND}-${VERSION_PRE}
       fi
     fi
   done
