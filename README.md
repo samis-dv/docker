@@ -5,7 +5,6 @@
 </p>
 
 <p>&nbsp;</p>
-
 <h1 align="center">
   The All-New Directus 7<br>Future-Proof Headless CMS
 </h1>
@@ -20,12 +19,11 @@
 </h3>
 
 <p>&nbsp;</p>
-
 > **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
-Directus provides several container images that will help we get started. Even though we maintain extra `kinds`, our officially supported image is based on `php-apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+Directus provides several container images that will help we get started. Even though we maintain extra `kinds`, our officially supported image is based on `php:apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
 # Concepts
 
@@ -40,46 +38,89 @@ We've organized our docker images in a way that:
 
 ## Image kinds
 
-We don't want to force anyone to use only `apache` and even though this is the one directus team officially supports, we know there are many webservers out there and we should be free to use the ones we like. We can also provide more slim versions of images by switching between OS distributions. A list of possible (just as an example, it's not necessarily implemented):
+We don't want to force anyone to use only `apache` and even though this is the one directus team officially supports, we know there are many webservers out there and we should be free to use the ones we like. We can also provide more slim versions of images by switching between OS distributions. For example: apache, nginx, caddy, alpine...
 
-- alpine
-- apache
-- nginx
-- caddy
-- alpine-apache
-- alpine-nginx
-- alpine-caddy
+Our images are split into 3 image types:
 
-## Core images
+1. [Dist images](#dist-images)
+2. [Base images](#base-images)
+3. [Core images](#core-images)
 
-Core images are base images that contains only base scripts and the webserver itself, this allows consistency over all distributed projects whenever we make fixes and and/or security updates are applied to webservers/OS.
+In most cases, **dist images** are the ones you'll want to use to deploy your directus instances. They are distributed by directus team through [docker hub](https://hub.docker.com/u/directus) under their respective repositories, so **always start from dist images until you find out that you need further customization**.
 
-These images DOES NOT contain any project-specific files besides webserver entrypoints and helper scripts related to the webserver itself.
+### Image dependencies
 
-The core images exists to be extended by base images (api, app, ...), allowing us to further add requirements that an specific project might need.
+To make final image builds faster, we share common steps through base and core images. Here's how we do that.
 
-> Think about these as the "clean" images.
+<img src=".github\images\inheritance.svg" width="200" />
+
+### Example
+
+#### Core
+
+> directus/core:apache-1.2.3
+
+```dockerfile
+FROM php:apache-7.3
+RUN apt-get update && apt-get install dependency
+...
+```
+
+#### Base (api)
+
+> directus/api:base-apache-1.2.3
+
+```dockerfile
+FROM directus/core:apache-1.2.3
+RUN docker-php-ext-install extension
+...
+```
+
+#### Dist (api)
+
+> directus/api:apache-3.2.1
+
+```dockerfile
+FROM directus/api:base-apache-1.2.3
+ONBUILD COPY . . 
+...
+```
+
+#### Dependency diagram
+
+<img src=".github\images\images.svg" width="300" />
+
+We'll cover below what each image does and when to  use them.
+
+## Dist images
+
+> These are the images you'll likely want to use to deploy your instances.
+
+Dist images are the images the directus team will build, support and distribute themselves and only contains the default configuration setup. Users will likely use these for their simple setups.
+
+**WARNING: These images ARE NOT built on this repository. They live inside their own repositories with their own release cycles.**
 
 ### FQIN
 
 ```
-${namespace}/${prefix}core:${kind}-${version}
+directus/{project}:${kind}-${version}
 ```
 
 #### Example
 
 | Variable | Value |
 |--|--|
-| **namespace** | registry.gitlab.com/user/project |
-| **prefix** | d6s- |
+| **project** | api |
 | **kind** | apache |
-| **version** | latest |
+| **version** | 3.2.1 |
 
 ```
-registry.gitlab.com/user/project/d6s-core:apache-latest
+directus/api:apache-3.2.1
 ```
 
 ## Base images
+
+> These images are the base images used in project (`FROM` statements), they include everything a project need to run.
 
 Every project has its own base images that inherits the core ones (allowing us to further customize the core with project-specific requirements).
 
@@ -90,8 +131,6 @@ These base images are mostly used to simplify the project implementation by addi
 We'll want to use them if we are building our own custom project images as they are ready to accept code from their `ONBUILD` stages.
 
 Dockerfiles inheriting from this base images allows us to add our own extension/hooks and/or install more extensions to PHP.
-
-> Think about these as the "extendable" images.
 
 ### FQIN
 
@@ -107,37 +146,44 @@ ${namespace}/${prefix}${project}:${kind}-${version}
 | **prefix** | project1- |
 | **project** | directus |
 | **kind** | apache |
-| **version** | latest |
+| **version** | 1.2.3 |
 
 ```
-gcr.io/my-agency/project1-directus:apache-latest
+gcr.io/my-agency/project1-directus:apache-1.2.3
 ```
 
-## Official images
+## Core images
 
-Official images are the images the directus team will build, support and distribute themselves and only contains the default configuration setup. Users will likely use these for their simple setups.
+> These are the clean images, it doesn't include anything related to any directus project.
 
-Think about these as the "I just want to use it" images.
+Core images are the images that contains only setup scripts and server related stuff, this allows us to have consistency over all projects whenever we make fixes and/or security updates are applied to webservers/OS.
+
+These images **DOES NOT** contain any project-specific files besides webserver entrypoints and helper scripts related to the webserver itself, such as install and helper scripts.
+
+The core images exists to be extended by base images (api, app, ...).
 
 ### FQIN
 
 ```
-directus/{project}:${kind}-${version}
+${namespace}/${prefix}core:${kind}-${version}
 ```
 
 #### Example
 
 | Variable | Value |
 |--|--|
-| **project** | api |
+| **namespace** | registry.gitlab.com/user/project |
+| **prefix** | d6s- |
 | **kind** | apache |
-| **version** | v2.4.0 |
+| **version** | 1.2.3 |
 
 ```
-directus/api:apache-v2.4.0
+registry.gitlab.com/user/project/d6s-core:apache-1.2.3
 ```
 
 # Building
+
+Here we'll cover how to build the images yourself if you want to contribute to docker project itself. In most cases you'll not need to build anything in this repository because we already distribute built images through docker hub.
 
 ## Requirements
 
@@ -169,12 +215,12 @@ We can build [core images](#core-images) using the command `tusk core`.
 
 ### Examples
 
-#### Build a nginx image
+#### Build an apache image
 
 ```
-$ tusk core --kind nginx --version v1
+$ tusk core --kind apache --version v1
 ...
-Successfully tagged directus/core:nginx-v1
+Successfully tagged directus/core:apache-v1
 ```
 
 ----------

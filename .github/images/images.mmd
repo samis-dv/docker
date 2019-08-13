@@ -1,0 +1,16 @@
+graph BT;
+
+classDef image-core fill:#fee9b2,stroke:#333,stroke-width:1px
+classDef image-base fill:#f9fce1,stroke:#333,stroke-width:1px
+classDef image-dist fill:#d3f6f3,stroke:#333,stroke-width:1px
+
+core-apache(directus/core:apache-1.2.3)
+api-base-apache(directus/api:base-apache-1.2.3)
+api-apache(directus/api:apache-3.2.1)
+
+class core-apache image-core
+class api-base-apache image-base
+class api-apache image-dist
+
+api-apache -.-> api-base-apache
+api-base-apache -.-> core-apache
