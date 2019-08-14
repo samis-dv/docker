@@ -1,0 +1,5 @@
+FROM docker:stable
+ENV PS1="\u@\w $ "
+ENV TRAVIS_BRANCH="develop"
+ENV PATH="$PATH:/directus/bin/"
+RUN apk update && apk add bash

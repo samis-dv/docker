@@ -1,5 +1,3 @@
-/projects/builder/tmp/
-/projects/builder/dist/
-/webhooks/src/config.php
+_temp
 .env
-volumes
+/Dockerfile

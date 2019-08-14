@@ -1,0 +1,104 @@
+options:
+  namespace:
+    type: string
+    usage: The images namespace user/org (defaults to directus).
+    environment: DIRECTUS_IMAGE_NAMESPACE
+    default: directus
+  prefix:
+    type: string
+    usage: The image prefix to use
+    environment: DIRECTUS_IMAGE_PREFIX
+    default: ""
+  push:
+    type: bool
+    usage: Pushes the containers to the registry if specified.
+    default: false
+
+tasks:
+  #
+  # Building
+  #
+  core:
+    usage: Builds a core image
+    description: |
+      Builds a core image and pushes it to the registry if specified
+    options:
+      kind:
+        type: string
+        required: true
+        usage: The core image kind (apache, nginx, ...)
+      version:
+        type: string
+        required: true
+        usage: The tag/version of the core image
+    run:
+      - when:
+          - not-exists: ./docker/core/${kind}/
+        command: "echo \"Unknown core kind: ${kind}\" && false"
+      - command: docker build -t ${namespace}/${prefix}core:${kind}-${version} -f ./docker/core/${kind}/Dockerfile ./docker/core/${kind}/
+      - when:
+          - equal: { push: true }
+        task:
+          name: push
+          options:
+            fqin: ${namespace}/${prefix}core:${kind}-${version}
+
+  #
+  # Builds a directus suite image
+  #
+  base:
+    usage: Builds a project base image
+    description: |
+      Builds a project base image and pushes it to the registry
+    options:
+      project:
+        type: string
+        required: true
+        usage: Directus project name
+      version:
+        type: string
+        required: true
+        usage: Directus core image version
+      kind:
+        type: string
+        required: true
+        usage: The base image kind (apache, nginx, ...)
+        values:
+          - apache
+    run:
+      - when:
+          - not-exists: ./docker/base/${project}/
+        command: "echo \"Unknown project: ${project}\" && false"
+      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${version} -t ${namespace}/${prefix}${project}:base-${kind}-${version} ./docker/base/${project}/${kind}/
+      - when:
+          - equal: { push: true }
+        task:
+          name: push
+          options:
+            fqin: ${namespace}/${prefix}${project}:base-${kind}-${version}
+
+  #
+  # Publish a container
+  #
+  push:
+    usage: Push registry image
+    description: |
+      Pushes an image to the container registry
+    options:
+      fqin:
+        type: string
+        usage: The FQIN image value
+    run:
+      - when:
+          equal: { push: true }
+        command: docker push ${fqin}
+      - when:
+          equal: { push: false }
+        command: echo "Skipping image push because there's no --push flag"
+
+  dev:
+    usage: Development environment
+    description: |
+      Starts a development environment
+    run:
+      - command: docker-compose -f ./sandbox.yml run --rm sandbox
