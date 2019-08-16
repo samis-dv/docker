@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -e
+
+#
+# Common
+#
+
+source $(dirname $0)/common
+
+#
+# Build gives priority to "/docker/<kind>/Dockerfile" if it exists, otherwise uses default image
+#
+
+echo "Building '${REPOSITORY_FULLNAME}' using base '${INPUT_KIND}' at version '${INPUT_BASE}'"
+
+if [ -f "${IMAGE_PATH}" ]; then
+  docker build --build-arg BASE_IMAGE=${IMAGE_BASE} -t ${IMAGE_NAME} -f ${IMAGE_PATH} ${IMAGE_CONTEXT}
+else
+  echo "FROM ${IMAGE_BASE}" | docker build -t ${IMAGE_NAME} -f - ${IMAGE_CONTEXT}
+fi

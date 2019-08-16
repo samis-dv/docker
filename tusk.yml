@@ -78,6 +78,27 @@ tasks:
             fqin: ${namespace}/${prefix}${project}:base-${kind}-${version}
 
   #
+  # Actions
+  #
+  action:
+    usage: Builds the action image
+    description: |
+      Builds the docker action used by github workflows
+    options:
+      version:
+        type: string
+        required: true
+        usage: Image version
+    run:
+      - command: docker build -t ${namespace}/${prefix}docker:${version} ./docker/action/
+      - when:
+          - equal: { push: true }
+        task:
+          name: push
+          options:
+            fqin: ${namespace}/${prefix}docker:${version}
+
+  #
   # Publish a container
   #
   push:
@@ -96,6 +117,9 @@ tasks:
           equal: { push: false }
         command: echo "Skipping image push because there's no --push flag"
 
+  #
+  # Development environment
+  #
   dev:
     usage: Development environment
     description: |

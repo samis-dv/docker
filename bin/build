@@ -32,6 +32,27 @@ else
   echo "> Not a release. Pushes are going to be skipped."
 fi
 
+echo ""
+echo "> Building [${KIND}] action image..."
+
+if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
+  invoke tusk action --version ${VERSION_PATCH}
+  docker tag directus/docker:${VERSION_PATCH} directus/docker:${VERSION_MINOR}
+  docker tag directus/docker:${VERSION_PATCH} directus/docker:${VERSION_MAJOR}
+  docker tag directus/docker:${VERSION_PATCH} directus/docker:latest
+  if [ "${VERSION_PUSH}" == "--push" ]; then
+    docker push directus/docker:${VERSION_PATCH}
+    docker push directus/docker:${VERSION_MINOR}
+    docker push directus/docker:${VERSION_MAJOR}
+    docker push directus/docker:latest
+  fi
+else
+  invoke tusk action --version ${VERSION_PRE}
+  if [ "${VERSION_PUSH}" == "--push" ]; then
+    docker push directus/${PROJECT}docker:${VERSION_PRE}
+  fi
+fi
+
 for KIND in ./docker/core/*
 do
   KIND=$(basename ${KIND})
