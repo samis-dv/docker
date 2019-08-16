@@ -1,0 +1,42 @@
+
+#!/usr/bin/env bash
+
+set -e
+
+#
+# Builds an image
+#
+
+export REPOSITORY_NAME="$(echo ${GITHUB_REPOSITORY} | awk -F'/' '{print $2}')"
+export REPOSITORY_FULLNAME="${GITHUB_REPOSITORY}"
+export INPUT_VERSION="${INPUT_TAG}"
+
+if [ "${INPUT_VERSION:0:1}" == "v" ]; then
+    export INPUT_VERSION="${INPUT_TAG:1}"
+else
+    export INPUT_VERSION="${INPUT_TAG}"
+fi
+
+export IMAGE_BASE="${REPOSITORY_FULLNAME}:base-${INPUT_KIND}-${INPUT_BASE}"
+export IMAGE_NAME="${REPOSITORY_FULLNAME}:${INPUT_VERSION}-${INPUT_KIND}"
+export IMAGE_CONTEXT="./releases/${REPOSITORY_NAME}-${INPUT_VERSION}/"
+export IMAGE_PATH="${IMAGE_CONTEXT}/docker/${INPUT_KIND}/Dockerfile"
+
+#
+# Fetch a release
+#
+
+echo "Downloading '${REPOSITORY_FULLNAME}' release named '${INPUT_TAG}'"
+
+curl -L https://github.com/${REPOSITORY_FULLNAME}/archive/${INPUT_TAG}.zip -o release.zip --ssl-no-revoke
+mkdir -p ./releases/
+unzip -q -u -d ./releases/ release.zip
+rm -f release.zip
+
+echo "Building '${REPOSITORY_FULLNAME}' using base '${INPUT_KIND}' at version '${INPUT_BASE}'"
+
+if [ -f "${IMAGE_PATH}" ]; then
+  docker build --build-arg BASE_IMAGE=${IMAGE_BASE} -t ${IMAGE_NAME} -f ${IMAGE_PATH} ${IMAGE_CONTEXT}
+else
+  echo "FROM ${IMAGE_BASE}" | docker build -t ${IMAGE_NAME} -f - ${IMAGE_CONTEXT}
+fi
