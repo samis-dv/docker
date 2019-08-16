@@ -7,4 +7,4 @@ RUN chmod +x /usr/bin/common && \
     chmod +x /usr/bin/build && \
     chmod +x /usr/bin/push
 ENTRYPOINT ["bash", "-c"]
-CMD ["login"]
+CMD ["release"]

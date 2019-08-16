@@ -2,3 +2,16 @@
 
 set -e
 
+#
+# Common
+#
+
+source $(dirname $0)/common
+
+#
+# Push
+#
+
+echo "Pushing '${IMAGE_NAME}'"
+
+docker push ${IMAGE_NAME}
