@@ -19,6 +19,7 @@
 </h3>
 
 <p>&nbsp;</p>
+
 > **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
@@ -82,7 +83,7 @@ RUN docker-php-ext-install extension
 
 ```dockerfile
 FROM directus/api:base-apache-1.2.3
-ONBUILD COPY . . 
+ONBUILD COPY . .
 ...
 ```
 
