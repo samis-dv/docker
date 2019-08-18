@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-function invoke() {
+function call() {
   $(dirname $0)/$1 ${@:2}
 }
 
@@ -60,10 +60,10 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   else
     export VERSION_PUSH="true"
   fi
-  export VERSION_MAJOR="$(invoke semver get major ${TRAVIS_TAG})"
-  export VERSION_MINOR="${VERSION_MAJOR}.$(invoke semver get minor ${TRAVIS_TAG})"
-  export VERSION_PATCH="${VERSION_MINOR}.$(invoke semver get patch ${TRAVIS_TAG})"
-  export VERSION_PRE="${VERSION_PATCH}-$(invoke semver get prerel ${TRAVIS_TAG})"
+  export VERSION_MAJOR="$(call semver get major ${TRAVIS_TAG})"
+  export VERSION_MINOR="${VERSION_MAJOR}.$(call semver get minor ${TRAVIS_TAG})"
+  export VERSION_PATCH="${VERSION_MINOR}.$(call semver get patch ${TRAVIS_TAG})"
+  export VERSION_PRE="${VERSION_PATCH}-$(call semver get prerel ${TRAVIS_TAG})"
   if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
     echo "> Pushing version ${VERSION_MAJOR}, ${VERSION_MINOR} and ${VERSION_PATCH} (release)"
   else
@@ -79,7 +79,7 @@ do
   echo ""
   echo "> Building [${KIND}] core image..."
   if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-    invoke tusk core --kind ${KIND} --version ${VERSION_PATCH}
+    call tusk core --kind ${KIND} --version ${VERSION_PATCH}
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MINOR}
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MAJOR}
     #docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-latest
@@ -90,7 +90,7 @@ do
       #docker push directus/core:${KIND}-latest
     fi
   else
-    invoke tusk core --kind ${KIND} --version ${VERSION_PRE}
+    call tusk core --kind ${KIND} --version ${VERSION_PRE}
     if [ "${VERSION_PUSH}" == "true" ]; then
       docker push directus/core:${KIND}-${VERSION_PRE}
     fi
@@ -107,7 +107,7 @@ do
     echo "> Building [${KIND}] base image for project [${PROJECT}]..."
 
     if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-      invoke tusk base --kind ${KIND} --version ${VERSION_PATCH} --project ${PROJECT}
+      call tusk base --kind ${KIND} --version ${VERSION_PATCH} --project ${PROJECT}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
       #docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
@@ -118,7 +118,7 @@ do
         #docker push directus/${PROJECT}:base-${KIND}-latest
       fi
     else
-      invoke tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
+      call tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
       if [ "${VERSION_PUSH}" == "true" ]; then
         docker push directus/${PROJECT}:base-${KIND}-${VERSION_PRE}
       fi
