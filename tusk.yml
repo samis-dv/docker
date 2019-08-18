@@ -33,15 +33,9 @@ tasks:
         usage: The tag/version of the core image
     run:
       - when:
-          - not-exists: ./docker/core/${kind}/
+          - not-exists: ./images/core/${kind}/
         command: "echo \"Unknown core kind: ${kind}\" && false"
-      - command: docker build -t ${namespace}/${prefix}core:${kind}-${version} -f ./docker/core/${kind}/Dockerfile ./docker/core/${kind}/
-      - when:
-          - equal: { push: true }
-        task:
-          name: push
-          options:
-            fqin: ${namespace}/${prefix}core:${kind}-${version}
+      - command: docker build -t ${namespace}/${prefix}core:${kind}-${version} -f ./images/core/${kind}/Dockerfile ./images/core/${kind}/
 
   #
   # Builds a directus suite image
@@ -67,55 +61,9 @@ tasks:
           - apache
     run:
       - when:
-          - not-exists: ./docker/base/${project}/
+          - not-exists: ./images/base/${project}/
         command: "echo \"Unknown project: ${project}\" && false"
-      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${version} -t ${namespace}/${prefix}${project}:base-${kind}-${version} ./docker/base/${project}/${kind}/
-      - when:
-          - equal: { push: true }
-        task:
-          name: push
-          options:
-            fqin: ${namespace}/${prefix}${project}:base-${kind}-${version}
-
-  #
-  # Actions
-  #
-  action:
-    usage: Builds the action image
-    description: |
-      Builds the docker action used by github workflows
-    options:
-      version:
-        type: string
-        required: true
-        usage: Image version
-    run:
-      - command: docker build -t ${namespace}/${prefix}docker:${version} ./docker/action/
-      - when:
-          - equal: { push: true }
-        task:
-          name: push
-          options:
-            fqin: ${namespace}/${prefix}docker:${version}
-
-  #
-  # Publish a container
-  #
-  push:
-    usage: Push registry image
-    description: |
-      Pushes an image to the container registry
-    options:
-      fqin:
-        type: string
-        usage: The FQIN image value
-    run:
-      - when:
-          equal: { push: true }
-        command: docker push ${fqin}
-      - when:
-          equal: { push: false }
-        command: echo "Skipping image push because there's no --push flag"
+      - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${version} -t ${namespace}/${prefix}${project}:base-${kind}-${version} ./images/base/${project}/${kind}/
 
   #
   # Development environment
