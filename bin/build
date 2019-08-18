@@ -10,11 +10,13 @@ function invoke() {
 
 if [ "${SANDBOX}" == "true" ]; then
   echo "Running in dev sandbox"
+  if ! [ -d ".git" ]; then
+    echo -e "\e[31mFailed to read git repository. Sandbox should be used inside a git repository.\e[0m"
+    exit 1
+  fi
+
+  export TRAVIS_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
   if [ "${TRAVIS_TAG}" == "" ]; then
-    if ! [ -d ".git" ]; then
-      echo -e "\e[31mFailed to read git repository to fetch tag information. Set TRAVIS_TAG manually.\e[0m"
-      exit 1
-    fi
     set +e
     git describe --exact-match --tags > /tmp/tag 2>&1
     if [ "$?" != "0" ]; then
