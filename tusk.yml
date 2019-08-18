@@ -66,6 +66,25 @@ tasks:
       - command: docker build --build-arg CORE_IMAGE=${namespace}/${prefix}core:${kind}-${version} -t ${namespace}/${prefix}${project}:base-${kind}-${version} ./images/base/${project}/${kind}/
 
   #
+  # Manual
+  #
+  build:
+    usage: Manual build
+    description: |
+      Performs a manual build
+    options:
+      release:
+        type: string
+        default: ""
+        usage: Directus docker release
+    run:
+      - set-environment:
+          SANDBOX: "true"
+          TRAVIS_BRANCH: "master"
+          TRAVIS_TAG: "${release}"
+      - command: ./bin/build
+
+  #
   # Development environment
   #
   dev:
@@ -73,4 +92,7 @@ tasks:
     description: |
       Starts a development environment
     run:
+      - when:
+          - not-exists: .env
+        command: "echo \"DOCKER_USERNAME=fill_me\" >> .env && echo \"DOCKER_PASSWORD=fill_me\" >> .env"
       - command: docker-compose -f ./sandbox.yml run --rm sandbox

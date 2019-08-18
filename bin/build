@@ -5,6 +5,12 @@ function invoke() {
   $(dirname $0)/$1 ${@:2}
 }
 
+if [ "${SANDBOX}" == "true" ]; then
+  echo "Running in dev sandbox"
+  git status
+  exit 0
+fi
+
 echo ""
 echo "Building images..."
 echo "> TRAVIS_TAG = \"${TRAVIS_TAG}\""

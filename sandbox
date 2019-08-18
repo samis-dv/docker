@@ -1,5 +1,12 @@
 FROM docker:stable
-ENV PS1="\u@\w $ "
 ENV TRAVIS_BRANCH="develop"
 ENV PATH="$PATH:/directus/bin/"
-RUN apk update && apk add bash
+ENV SANDBOX="true"
+RUN apk update && apk add bash git
+RUN echo "export PS1=\"\\u@\\w $ \"" >> ~/.bashrc
+RUN echo "#!/usr/bin/env bash" >> /entrypoint.sh && \
+    echo "echo \"\${DOCKER_PASSWORD:-none}\" | docker login -u \"\${DOCKER_USERNAME:-none}\" --password-stdin > /dev/null 2>&1" >> /entrypoint.sh && \
+    echo "if [ \"\$?\" != \"0\" ]; then echo -e \"\\e[41m~ Please check your credentials on .env file ~\\e[0m\" ; fi" >> /entrypoint.sh && \
+    echo "exec bash" >> /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
