@@ -14,13 +14,12 @@ if [ "${SANDBOX}" == "true" ]; then
     echo -e "\e[31mFailed to read git repository. Sandbox should be used inside a git repository.\e[0m"
     exit 1
   fi
-
   export TRAVIS_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
   if [ "${TRAVIS_TAG}" == "" ]; then
     set +e
     git describe --exact-match --tags > /tmp/tag 2>&1
     if [ "$?" != "0" ]; then
-      echo -e "\e[31mFailed to fetch tag information from git repository. Set TRAVIS_TAG or checkout a tag.\e[0m"
+      echo -e "\e[31mFailed to fetch tag information from git repository.\e[0m"
       exit 1
     fi
     set -e
@@ -36,8 +35,8 @@ fi
 echo ""
 echo "Building images..."
 echo ""
-echo "> TRAVIS_TAG = \"${TRAVIS_TAG}\""
-echo "> TRAVIS_BRANCH = \"${TRAVIS_BRANCH}\""
+echo "> Tag = \"${TRAVIS_TAG}\""
+echo "> Branch = \"${TRAVIS_BRANCH}\""
 echo ""
 
 export VERSION_PUSH="false"
@@ -73,7 +72,7 @@ else
   echo "> Not a release. Pushes are going to be skipped."
 fi
 
-for KIND in ./images/core/*
+for KIND in ./images/core/*/
 do
   KIND=$(basename ${KIND})
   echo ""
@@ -97,7 +96,7 @@ do
   fi
 done
 
-for PROJECT in ./images/base/*
+for PROJECT in ./images/base/*/
 do
   for KIND in "${PROJECT}/*"
   do
