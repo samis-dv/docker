@@ -5,9 +5,10 @@ services:
       dockerfile: ./sandbox
       context: ./
     stdin_open: true
-    entrypoint: "bash"
+    command: "bash"
     working_dir: "/directus"
     privileged: true
+    env_file: .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/directus

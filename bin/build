@@ -5,12 +5,40 @@ function invoke() {
   $(dirname $0)/$1 ${@:2}
 }
 
+# NOTE: Remove images
+# docker image rm --force $(docker images --format "{{.Repository}}:{{.Tag}}" | grep directus)
+
+if [ "${SANDBOX}" == "true" ]; then
+  echo "Running in dev sandbox"
+  if [ "${TRAVIS_TAG}" == "" ]; then
+    if ! [ -d ".git" ]; then
+      echo -e "\e[31mFailed to read git repository to fetch tag information. Set TRAVIS_TAG manually.\e[0m"
+      exit 1
+    fi
+    set +e
+    git describe --exact-match --tags > /tmp/tag 2>&1
+    if [ "$?" != "0" ]; then
+      echo -e "\e[31mFailed to fetch tag information from git repository. Set TRAVIS_TAG or checkout a tag.\e[0m"
+      exit 1
+    fi
+    set -e
+    export TRAVIS_TAG=$(cat /tmp/tag)
+    semver get major ${TRAVIS_TAG} > /dev/null 2>&1
+    if [ "$?" != "0" ]; then
+      echo -e "\e[31mFailed to parse SEMVER from string "${TRAVIS_TAG}"\e[0m"
+      exit 1
+    fi
+  fi
+fi
+
 echo ""
 echo "Building images..."
+echo ""
 echo "> TRAVIS_TAG = \"${TRAVIS_TAG}\""
 echo "> TRAVIS_BRANCH = \"${TRAVIS_BRANCH}\""
+echo ""
 
-export VERSION_PUSH=""
+export VERSION_PUSH="false"
 export VERSION_MAJOR="${TRAVIS_BRANCH}"
 export VERSION_MINOR="${TRAVIS_BRANCH}"
 export VERSION_PATCH="${TRAVIS_BRANCH}"
@@ -18,7 +46,18 @@ export VERSION_PRE="${TRAVIS_BRANCH}"
 export VERSION="${TRAVIS_BRANCH}"
 
 if [ "${TRAVIS_TAG}" != "" ]; then
-  export VERSION_PUSH="--push"
+  if [ "${SANDBOX}" == "true" ]; then
+    read -rp " Do you want to push the resulting images? [y/N] "
+    if [[ ${REPLY,,} =~ ^(y|Y|yes)$ ]]; then
+      export VERSION_PUSH="true"
+    else
+      export VERSION_PUSH="false"
+    fi
+    echo ""
+    sleep 1
+  else
+    export VERSION_PUSH="true"
+  fi
   export VERSION_MAJOR="$(invoke semver get major ${TRAVIS_TAG})"
   export VERSION_MINOR="${VERSION_MAJOR}.$(invoke semver get minor ${TRAVIS_TAG})"
   export VERSION_PATCH="${VERSION_MINOR}.$(invoke semver get patch ${TRAVIS_TAG})"
@@ -32,7 +71,7 @@ else
   echo "> Not a release. Pushes are going to be skipped."
 fi
 
-for KIND in ./docker/core/*
+for KIND in ./images/core/*
 do
   KIND=$(basename ${KIND})
   echo ""
@@ -42,7 +81,7 @@ do
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MINOR}
     docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MAJOR}
     #docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-latest
-    if [ "${VERSION_PUSH}" == "--push" ]; then
+    if [ "${VERSION_PUSH}" == "true" ]; then
       docker push directus/core:${KIND}-${VERSION_PATCH}
       docker push directus/core:${KIND}-${VERSION_MINOR}
       docker push directus/core:${KIND}-${VERSION_MAJOR}
@@ -50,13 +89,13 @@ do
     fi
   else
     invoke tusk core --kind ${KIND} --version ${VERSION_PRE}
-    if [ "${VERSION_PUSH}" == "--push" ]; then
+    if [ "${VERSION_PUSH}" == "true" ]; then
       docker push directus/core:${KIND}-${VERSION_PRE}
     fi
   fi
 done
 
-for PROJECT in ./docker/base/*
+for PROJECT in ./images/base/*
 do
   for KIND in "${PROJECT}/*"
   do
@@ -70,7 +109,7 @@ do
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
       docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
       #docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
-      if [ "${VERSION_PUSH}" == "--push" ]; then
+      if [ "${VERSION_PUSH}" == "true" ]; then
         docker push directus/${PROJECT}:base-${KIND}-${VERSION_PATCH}
         docker push directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
         docker push directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
@@ -78,7 +117,7 @@ do
       fi
     else
       invoke tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
-      if [ "${VERSION_PUSH}" == "--push" ]; then
+      if [ "${VERSION_PUSH}" == "true" ]; then
         docker push directus/${PROJECT}:base-${KIND}-${VERSION_PRE}
       fi
     fi
