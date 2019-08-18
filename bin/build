@@ -5,16 +5,38 @@ function invoke() {
   $(dirname $0)/$1 ${@:2}
 }
 
+# NOTE: Remove images
+# docker image rm --force $(docker images --format "{{.Repository}}:{{.Tag}}" | grep directus)
+
 if [ "${SANDBOX}" == "true" ]; then
   echo "Running in dev sandbox"
-  git status
-  exit 0
+  if [ "${TRAVIS_TAG}" == "" ]; then
+    if ! [ -d ".git" ]; then
+      echo -e "\e[31mFailed to read git repository to fetch tag information. Set TRAVIS_TAG manually.\e[0m"
+      exit 1
+    fi
+    set +e
+    git describe --tags > /tmp/tag 2>&1
+    if [ "$?" != "0" ]; then
+      echo -e "\e[31mFailed to fetch tag information from git repository. Set TRAVIS_TAG or checkout a tag.\e[0m"
+      exit 1
+    fi
+    set -e
+    export TRAVIS_TAG=$(cat /tmp/tag)
+    semver get major ${TRAVIS_TAG} > /dev/null 2>&1
+    if [ "$?" != "0" ]; then
+      echo -e "\e[31mFailed to parse SEMVER from string "${TRAVIS_TAG}"\e[0m"
+      exit 1
+    fi
+  fi
 fi
 
 echo ""
 echo "Building images..."
+echo ""
 echo "> TRAVIS_TAG = \"${TRAVIS_TAG}\""
 echo "> TRAVIS_BRANCH = \"${TRAVIS_BRANCH}\""
+echo ""
 
 export VERSION_PUSH="false"
 export VERSION_MAJOR="${TRAVIS_BRANCH}"
@@ -24,7 +46,18 @@ export VERSION_PRE="${TRAVIS_BRANCH}"
 export VERSION="${TRAVIS_BRANCH}"
 
 if [ "${TRAVIS_TAG}" != "" ]; then
-  export VERSION_PUSH="true"
+  if [ "${SANDBOX}" == "true" ]; then
+    read -rp " Do you want to push the resulting images? [y/N] "
+    if [[ ${REPLY,,} =~ ^(y|Y|yes)$ ]]; then
+      export VERSION_PUSH="true"
+    else
+      export VERSION_PUSH="false"
+    fi
+    echo ""
+    sleep 1
+  else
+    export VERSION_PUSH="true"
+  fi
   export VERSION_MAJOR="$(invoke semver get major ${TRAVIS_TAG})"
   export VERSION_MINOR="${VERSION_MAJOR}.$(invoke semver get minor ${TRAVIS_TAG})"
   export VERSION_PATCH="${VERSION_MINOR}.$(invoke semver get patch ${TRAVIS_TAG})"
