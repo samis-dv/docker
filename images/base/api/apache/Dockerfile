@@ -13,5 +13,5 @@ ENV DIRECTUS_LOAD_ENV=1
 #
 # Copy files
 #
-ONBUILD COPY . /var/www/
+ONBUILD COPY --chown=www-data:www-data . /var/www/
 ONBUILD RUN cd /var/www/ && install-dependencies
