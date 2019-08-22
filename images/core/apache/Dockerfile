@@ -36,6 +36,11 @@ RUN \
 EXPOSE 80
 
 #
+# Workdir
+#
+WORKDIR /var/www/public/
+
+#
 # New entrypoint
 #
 ENTRYPOINT ["docker-entrypoint"]
