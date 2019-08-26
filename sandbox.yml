@@ -1,14 +1,12 @@
 version: "3"
 services:
   sandbox:
-    build:
-      dockerfile: ./sandbox
-      context: ./
+    image: wolfulus/sandbox:latest
     stdin_open: true
-    command: "bash"
-    working_dir: "/directus"
     privileged: true
     env_file: .env
+    environment:
+      TRAVIS_BRANCH: develop
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./:/directus
+      - ./:/sandbox

@@ -47,15 +47,29 @@ export VERSION_PRE="${TRAVIS_BRANCH}"
 export VERSION="${TRAVIS_BRANCH}"
 
 if [ "${TRAVIS_TAG}" != "" ]; then
+  set +e
+  call semver get major ${TRAVIS_TAG} > /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    echo "> Invalid version format \"${TRAVIS_TAG}\". Please follow semver specification."
+    exit 1
+  fi
+  set -e
+
   if [ "${SANDBOX}" == "true" ]; then
-    read -rp " Do you want to push the resulting images? [y/N] "
-    if [[ ${REPLY,,} =~ ^(y|Y|yes)$ ]]; then
+    if [ "${SANDBOX_PUSH}" == "ask" ]; then
+      read -rp " Do you want to push the resulting images? [y/N] "
+      if [[ ${REPLY,,} =~ ^(y|Y|yes)$ ]]; then
+        export VERSION_PUSH="true"
+      else
+        export VERSION_PUSH="false"
+      fi
+      echo ""
+      sleep 1
+    elif [ "${SANDBOX_PUSH}" == "yes" ]; then
       export VERSION_PUSH="true"
     else
       export VERSION_PUSH="false"
     fi
-    echo ""
-    sleep 1
   else
     export VERSION_PUSH="true"
   fi
