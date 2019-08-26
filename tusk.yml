@@ -75,13 +75,18 @@ tasks:
     options:
       release:
         type: string
-        default: ""
+        required: true
         usage: Directus docker release
+      push:
+        type: boolean
+        usage: Images should be pushed
+        default: false
     run:
       - set-environment:
           SANDBOX: "true"
           TRAVIS_BRANCH: "master"
           TRAVIS_TAG: "${release}"
+          SANDBOX_PUSH: "${push}"
       - command: ./bin/build
 
   #
@@ -93,6 +98,6 @@ tasks:
       Starts a development environment
     run:
       - when:
-          - not-exists: .env
-        command: "echo \"DOCKER_USERNAME=fill_me\" >> .env && echo \"DOCKER_PASSWORD=fill_me\" >> .env"
-      - command: docker-compose -f ./sandbox.yml run --rm sandbox
+          - not-exists: ./.env
+        command: "echo \"DOCKER_USERNAME=\" >> .env && echo \"DOCKER_PASSWORD=\" >> .env"
+      - command: docker-compose -f ./sandbox.yml pull && docker-compose -f ./sandbox.yml run --rm sandbox
