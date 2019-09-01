@@ -6,11 +6,11 @@ push=true
 version=${TRAVIS_TAG}
 if [ "${version}" == "" ]; then
   push=false
-  version=${TRAVIS_BRANCH}
+  version=${TRAVIS_BRANCH:-"develop"}
 fi
 
 if [ $push == true ]; then
-  build --type all --version ${version} --push
+  $(dirname $0)/build --type all --version ${version} --push
 else
-  build --type all --version ${version}
+  $(dirname $0)/build --type all --version ${version}
 fi
