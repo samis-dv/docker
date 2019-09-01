@@ -12,7 +12,7 @@ git:
   quiet: true
 
 script:
-  - ./bin/build
+  - ./bin/travis
 
 notifications:
   slack:

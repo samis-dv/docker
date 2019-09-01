@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -e
+
+push=true
+version=${TRAVIS_TAG}
+if [ "${version}" == "" ]; then
+  push=false
+  version=${TRAVIS_BRANCH}
+fi
+
+for kind in apache node
+do
+  if [ $push == true ]; then
+    build --type core --kind ${kind} --version ${version} --push
+  else
+    build --type core --kind ${kind} --version ${version}
+  fi
+done
+
+
