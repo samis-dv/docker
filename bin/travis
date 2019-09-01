@@ -9,13 +9,8 @@ if [ "${version}" == "" ]; then
   version=${TRAVIS_BRANCH}
 fi
 
-for kind in apache node
-do
-  if [ $push == true ]; then
-    build --type core --kind ${kind} --version ${version} --push
-  else
-    build --type core --kind ${kind} --version ${version}
-  fi
-done
-
-
+if [ $push == true ]; then
+  build --type all --version ${version} --push
+else
+  build --type all --version ${version}
+fi
