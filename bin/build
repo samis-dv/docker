@@ -2,7 +2,7 @@
 
 set -e
 
-root=$(realpath $(dirname $0)/../)
+root=$(cd $(dirname $0)/../; pwd)
 source $root/bin/source/argsf
 
 #
