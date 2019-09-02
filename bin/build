@@ -1,146 +1,353 @@
 #!/usr/bin/env bash
+
 set -e
 
-function call() {
-  $(dirname $0)/$1 ${@:2}
-}
+root=$(cd $(dirname $0)/../; pwd)
+source $root/bin/source/argsf
 
-# NOTE: Remove images
-# docker image rm --force $(docker images --format "{{.Repository}}:{{.Tag}}" | grep directus)
-
-if [ "${SANDBOX}" == "true" ]; then
-  echo "Running in dev sandbox"
-  if ! [ -d ".git" ]; then
-    echo -e "\e[31mFailed to read git repository. Sandbox should be used inside a git repository.\e[0m"
-    exit 1
+#
+# CLI header
+#
+function show_header() {
+  header=${1:-"directus builder"}
+  details=${2:-""}
+  has_details=false
+  if [ "${details}" != "" ]; then
+    has_details=true
   fi
-  export TRAVIS_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
-  if [ "${TRAVIS_TAG}" == "" ]; then
-    set +e
-    git describe --exact-match --tags > /tmp/tag 2>&1
-    if [ "$?" != "0" ]; then
-      echo -e "\e[31mFailed to fetch tag information from git repository.\e[0m"
-      exit 1
-    fi
-    set -e
-    export TRAVIS_TAG=$(cat /tmp/tag)
-    semver get major ${TRAVIS_TAG} > /dev/null 2>&1
-    if [ "$?" != "0" ]; then
-      echo -e "\e[31mFailed to parse SEMVER from string "${TRAVIS_TAG}"\e[0m"
-      exit 1
-    fi
-  fi
-fi
 
-echo ""
-echo "Building images..."
-echo ""
-echo "> Tag = \"${TRAVIS_TAG}\""
-echo "> Branch = \"${TRAVIS_BRANCH}\""
-echo ""
-
-export VERSION_PUSH="false"
-export VERSION_MAJOR="${TRAVIS_BRANCH}"
-export VERSION_MINOR="${TRAVIS_BRANCH}"
-export VERSION_PATCH="${TRAVIS_BRANCH}"
-export VERSION_PRE="${TRAVIS_BRANCH}"
-export VERSION="${TRAVIS_BRANCH}"
-
-if [ "${TRAVIS_TAG}" != "" ]; then
   set +e
-  call semver get major ${TRAVIS_TAG} > /dev/null 2>&1
-  if [ "$?" != "0" ]; then
-    echo "> Invalid version format \"${TRAVIS_TAG}\". Please follow semver specification."
-    exit 1
+  has_figlet=false
+  command -v figlet > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    has_figlet=true
   fi
   set -e
 
-  if [ "${SANDBOX}" == "true" ]; then
-    if [ "${SANDBOX_PUSH}" == "ask" ]; then
-      read -rp " Do you want to push the resulting images? [y/N] "
-      if [[ ${REPLY,,} =~ ^(y|Y|yes)$ ]]; then
-        export VERSION_PUSH="true"
-      else
-        export VERSION_PUSH="false"
-      fi
-      echo ""
-      sleep 1
-    elif [ "${SANDBOX_PUSH}" == "yes" ]; then
-      export VERSION_PUSH="true"
+  contents=""
+  if [ $has_figlet == true ]; then
+    if [ $has_details == true ]; then
+      contents="$(figlet ${header})\n\n> ${details}\n"
     else
-      export VERSION_PUSH="false"
+      contents="$(figlet ${header})\n"
     fi
   else
-    export VERSION_PUSH="true"
+    if [ $has_details == true ]; then
+      contents="$(printf ">\n> [ ${header} ]\n>\n> ${details}\n>")\n"
+    else
+      contents="$(printf ">\n> [ ${header} ]\n>\n")\n"
+    fi
   fi
-  export VERSION_MAJOR="$(call semver get major ${TRAVIS_TAG})"
-  export VERSION_MINOR="${VERSION_MAJOR}.$(call semver get minor ${TRAVIS_TAG})"
-  export VERSION_PATCH="${VERSION_MINOR}.$(call semver get patch ${TRAVIS_TAG})"
-  export VERSION_PRE="${VERSION_PATCH}-$(call semver get prerel ${TRAVIS_TAG})"
-  if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-    echo "> Pushing version ${VERSION_MAJOR}, ${VERSION_MINOR} and ${VERSION_PATCH} (release)"
-  else
-    echo "> Pushing version ${VERSION_PRE} (prerelease)"
-  fi
-else
-  echo "> Not a release. Pushes are going to be skipped."
-fi
 
-for KIND in ./images/core/*/
-do
-  KIND=$(basename ${KIND})
-  echo ""
-  echo "> Building [${KIND}] core image..."
-  if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-    call tusk core --kind ${KIND} --version ${VERSION_PATCH}
-    docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MINOR}
-    docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-${VERSION_MAJOR}
-    #docker tag directus/core:${KIND}-${VERSION_PATCH} directus/core:${KIND}-latest
-    if [ "${VERSION_PUSH}" == "true" ]; then
-      docker push directus/core:${KIND}-${VERSION_PATCH}
-      docker push directus/core:${KIND}-${VERSION_MINOR}
-      docker push directus/core:${KIND}-${VERSION_MAJOR}
-      #docker push directus/core:${KIND}-latest
-    fi
+  echo -e "\e[32m${contents}\e[0m"
+}
+
+#
+# Call a script inside the bin folder
+#
+function call() {
+  $root/bin/extras/$1 ${@:2}
+}
+
+#
+# Makes a set of tags
+#
+function make_tags() {
+  image=${1}
+  kind=${2}
+  version=${3}
+  prefix=${4}
+  suffix=${5}
+  call semver get major ${version} > /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    echo "${image}:${prefix}${version}-${kind}${suffix}"
   else
-    call tusk core --kind ${KIND} --version ${VERSION_PRE}
-    if [ "${VERSION_PUSH}" == "true" ]; then
-      docker push directus/core:${KIND}-${VERSION_PRE}
+    major="$(call semver get major ${version})"
+    minor="${major}.$(call semver get minor ${version})"
+    patch="${minor}.$(call semver get patch ${version})"
+    prerel="${patch}-$(call semver get prerel ${version})"
+    if [ "${prerel}" != "${patch}-" ]; then
+      echo "${image}:${prefix}${prerel}-${kind}${suffix}"
+    else
+      echo "${image}:${prefix}${major}-${kind}${suffix}"
+      echo "${image}:${prefix}${minor}-${kind}${suffix}"
+      echo "${image}:${prefix}${patch}-${kind}${suffix}"
     fi
   fi
-done
+}
 
-for PROJECT in ./images/base/*/
-do
-  for KIND in "${PROJECT}/*"
+#
+# Build core help
+#
+function build_core_help() {
+  echo "
+    Performs builds of core images.
+    NOTE: Core images should be already available/pulled.
+
+    Usage:
+
+      build --type base --kind apache --version v1.2.3
+
+    Options:
+
+      --kind <kind>         The kind of image to build. For example: apache
+      --version <version>   The output images version. Semver compatible strings
+                            will output multiple images tags for major minor patch
+                            and prerelease.
+      --image <image>       The base image name to use. This does NOT include tags.
+                            [default: directus/core]
+
+    Flags:
+
+      --help                Shows this screen.
+      --push                Push the output images after each build.
+                            [default: not set]
+  " | cut -c 5-
+}
+
+#
+# Builds core images
+#
+function build_core() {
+  kind=$(argument kind)
+  image=$(argument image directus/core)
+  version=$(argument version)
+  push=$(flagd push)
+
+  if ! [ -d $root/images/core/${kind}/ ]; then
+    echo "Unknown core: ${kind}"
+    return 1
+  fi
+
+  show_header "build:core" "kind='${kind}', version='${version}'"
+
+  build_image="core-${kind}-temp:${version}"
+  output_images=$(make_tags ${image} ${kind} ${version})
+
+  docker build -t "${build_image}" $root/images/core/${kind}/
+
+  for image in $output_images
   do
-    KIND=$(basename ${KIND})
-    PROJECT=$(basename ${PROJECT})
-    echo ""
-    echo "> Building [${KIND}] base image for project [${PROJECT}]..."
-
-    if [ "${VERSION_PRE}" == "${VERSION_PATCH}-" ]; then
-      call tusk base --kind ${KIND} --version ${VERSION_PATCH} --project ${PROJECT}
-      docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
-      docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
-      #docker tag directus/${PROJECT}:base-${KIND}-${VERSION_PATCH} directus/${PROJECT}:base-${KIND}-latest
-      if [ "${VERSION_PUSH}" == "true" ]; then
-        docker push directus/${PROJECT}:base-${KIND}-${VERSION_PATCH}
-        docker push directus/${PROJECT}:base-${KIND}-${VERSION_MINOR}
-        docker push directus/${PROJECT}:base-${KIND}-${VERSION_MAJOR}
-        #docker push directus/${PROJECT}:base-${KIND}-latest
-      fi
-    else
-      call tusk base --kind ${KIND} --version ${VERSION_PRE} --project ${PROJECT}
-      if [ "${VERSION_PUSH}" == "true" ]; then
-        docker push directus/${PROJECT}:base-${KIND}-${VERSION_PRE}
-      fi
+    echo "Tagging ${image}"
+    docker tag "${build_image}" "${image}"
+    if [ "$push" == "true" ]; then
+      docker push ${image}
     fi
   done
-done
 
-echo ""
-echo "Output images"
-echo ""
-docker images --format "{{.Repository}}:{{.Tag}}" | grep directus | sort
-echo ""
+  docker image rm "${build_image}"
+}
+
+#
+# Build base help
+#
+function build_base_help() {
+  echo "
+    Performs builds of base images.
+    NOTE: Core images should be already available/pulled.
+
+    Usage:
+
+      build --type base --kind apache --version v1.2.3
+
+    Options:
+
+      --kind <kind>         The kind of image to build. For example: apache
+      --project <project>   The project name. For example: api
+      --version <version>   The output images version. Semver compatible strings
+                            will output multiple images tags for major minor patch
+                            and prerelease.
+      --core <image>        The core image the base image should use.
+                            [default: directus/core:\${version}/\${kind}]
+      --image <image>       The base image name to use. This does NOT include tags.
+                            [default: directus/base]
+
+    Flags:
+
+      --help                Shows this screen.
+      --push                Push the output images after each build.
+                            [default: not set]
+  " | cut -c 5-
+}
+
+#
+# Builds base images
+#
+function build_base() {
+  kind=$(argument kind)
+  version=$(argument version)
+  core=$(argument core directus/core:${version}-${kind})
+  project=$(argument project)
+  image=$(argument image directus/base)
+  push=$(flagd push)
+
+  if ! [ -d $root/images/base/${project}/ ]; then
+    echo "Unknown project: ${project}"
+    return 1
+  fi
+
+  if ! [ -d $root/images/base/${project}/${kind}/ ]; then
+    echo "Unknown project kind: ${project}/${kind}"
+    return 1
+  fi
+
+  show_header "build:base" "project='${project}', kind='${kind}', version='${version}'"
+
+  build_image="${project}-${kind}-temp:${version}"
+  output_images=$(make_tags ${image} ${project}-${kind} ${version})
+
+  docker build --build-arg CORE_IMAGE="${core}" -t "${build_image}" "$root/images/base/${project}/${kind}/"
+
+  for image in $output_images
+  do
+    echo Tagging ${image}
+    docker tag "${build_image}" "${image}"
+    if [ "$push" == "true" ]; then
+      docker push ${image}
+    fi
+  done
+
+  docker image rm "${build_image}"
+}
+
+#
+# Build all help
+#
+function build_all_help() {
+  echo "
+    Performs builds for all core and base image available.
+    The base images from this build will always reference the core images from
+    the same build. Use \"build --type base\" if you want to point base images
+    to a different core image.
+
+    Usage:
+
+      build --type all --version v1.0.0
+      build --type all --version 1.2.3-pre --image_core user/directus-core
+      build --type all --version test1 --image_base user/directus-base
+      build --type all \\
+            --version test2 \\
+            --image_core user/directus-core \\
+            --image_base user/directus-base
+
+    Options:
+
+      --version <version>   The output images version. Semver compatible strings
+                            will output multiple images tags for major minor patch
+                            and prerelease.
+      --image_core <image>  The image namespace/name to use for core images.
+                            [default: directus/core]
+      --image_base <image>  The image namespace/name to use for base images.
+                            [default: directus/base]
+
+    Flags:
+
+      --help                Shows this screen.
+      --push                Push the output images after each build.
+                            [default: not set]
+  " | cut -c 5-
+}
+
+#
+# Builds all images
+#
+function build_all() {
+
+  image_core=$(argument image-core directus/core)
+  image_base=$(argument image-core directus/base)
+  version=$(argument version)
+
+  push=$(flagd push)
+  if [ $push == true ]; then
+    push="--push"
+  else
+    push=""
+  fi
+
+  #
+  # Build core images
+  #
+  for kind in apache node
+  do
+    ${root}/bin/build \
+      --type core \
+      --image ${image_core} \
+      --kind ${kind} \
+      --version ${version} \
+      ${push}
+  done
+
+  #
+  # Build base images
+  #
+  for project in `find "${root}/images/base/" -mindepth 1 -maxdepth 1 -type d -print`
+  do
+    project=$(basename ${project})
+    for kind in `find "${root}/images/base/${project}" -mindepth 1 -maxdepth 1 -type d -print`
+    do
+      kind=$(basename ${kind})
+      ${root}/bin/build \
+        --type base \
+        --core ${image_core}:${version}-${kind} \
+        --kind ${kind} \
+        --version ${version} \
+        --project ${project} \
+        ${push}
+    done
+  done
+
+}
+
+#
+# Bootstrap help
+#
+function main_help() {
+  echo "
+    Performs directus image builds.
+
+    Usage:
+
+      build --type (all|core|base)
+
+    Options:
+      --help          Shows this screen.
+      --type <type>   Which type of build to perform.
+
+  " | cut -c 5-
+}
+
+#
+# Bootstrap
+#
+function main() {
+  type=$(argument type "")
+  help=$(flagd help)
+
+  if [ $help == true ] && [ "$type" == "" ]; then
+    show_header "directus"
+    main_help
+    exit 0
+  fi
+
+  set +e
+  declare -f build_${type} > /dev/null
+  result=$?
+  set -e
+
+  if [ $help == true ]; then
+    build_${type}_help
+    exit 0
+  fi
+
+  if [ "$result" == "0" ]; then
+    build_${type}
+    exit $?
+  fi
+
+  show_header "directus"
+  main_help
+  return 1
+}
+
+main
+exit $?

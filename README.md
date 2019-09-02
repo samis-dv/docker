@@ -59,30 +59,30 @@ To make final image builds faster, we share common steps through base and core i
 
 #### Core
 
-> directus/core:apache-1.2.3
+> directus/core:1.2.3-apache
 
 ```dockerfile
-FROM php:apache-7.3
+FROM php:7.3-apache
 RUN apt-get update && apt-get install dependency
 ...
 ```
 
 #### Base (api)
 
-> directus/api:base-apache-1.2.3
+> directus/base:1.2.3-api-apache
 
 ```dockerfile
-FROM directus/core:apache-1.2.3
+FROM directus/core:1.2.3-apache
 RUN docker-php-ext-install extension
 ...
 ```
 
 #### Dist (api)
 
-> directus/api:apache-3.2.1
+> directus/api:3.2.1-apache
 
 ```dockerfile
-FROM directus/api:base-apache-1.2.3
+FROM directus/base:1.2.3-api-apache
 ONBUILD COPY . .
 ...
 ```
@@ -104,7 +104,7 @@ Dist images are the images the directus team will build, support and distribute 
 ### FQIN
 
 ```
-directus/{project}:${kind}-${version}
+directus/${project}:${version}-${kind}
 ```
 
 #### Example
@@ -116,7 +116,7 @@ directus/{project}:${kind}-${version}
 | **version** | 3.2.1 |
 
 ```
-directus/api:apache-3.2.1
+directus/api:3.2.1-apache
 ```
 
 ## Base images
@@ -125,7 +125,7 @@ directus/api:apache-3.2.1
 
 Every project has its own base images that inherits the core ones (allowing us to further customize the core with project-specific requirements).
 
-For example if we're building an `api` image using `apache`, we will inherit the core image using `FROM directus/core:base-apache-VERSION` on the first line of its Dockerfile.
+For example if we're building an `api` image using `apache`, we will inherit the core image using `FROM directus/base:VERSION-apache` on the first line of its Dockerfile.
 
 These base images are mostly used to simplify the project implementation by adding some `ONBUILD` steps and are meant for more advanced users.
 
@@ -136,21 +136,19 @@ Dockerfiles inheriting from this base images allows us to add our own extension/
 ### FQIN
 
 ```
-${namespace}/${prefix}${project}:${kind}-${version}
+directus/base:${version}-${project}-${kind}
 ```
 
 #### Example
 
 | Variable | Value |
 |--|--|
-| **namespace** | gcr.io/my-agency |
-| **prefix** | project1- |
-| **project** | directus |
-| **kind** | apache |
+| **project** | app |
+| **kind** | node |
 | **version** | 1.2.3 |
 
 ```
-gcr.io/my-agency/project1-directus:apache-1.2.3
+directus/base:1.2.3-app-node
 ```
 
 ## Core images
@@ -166,206 +164,51 @@ The core images exists to be extended by base images (api, app, ...).
 ### FQIN
 
 ```
-${namespace}/${prefix}core:${kind}-${version}
+directus/core:${version}-${kind}
 ```
 
 #### Example
 
 | Variable | Value |
 |--|--|
-| **namespace** | registry.gitlab.com/user/project |
-| **prefix** | d6s- |
-| **kind** | apache |
 | **version** | 1.2.3 |
+| **kind** | apache |
 
 ```
-registry.gitlab.com/user/project/d6s-core:apache-1.2.3
+directus/core:1.2.3-apache
 ```
 
 # Building
 
-Here we'll cover how to build the images yourself if you want to contribute to docker project itself. In most cases you'll not need to build anything in this repository because we already distribute built images through docker hub.
+In most cases you'll not need to build anything in this repository because we already distribute built images through docker hub. But if you want to, you'll be able to easily build them with our build script.
 
 ## Requirements
 
 - [Docker](https://docs.docker.com/install/)
-- [Tusk](https://github.com/rliebz/tusk)
 - bash
 
-## Global options
-
-These options can be passed to any command below in order to customize the way images are tagged.
-
-| Option | Default | Description |
-|--|--|--|
-| **--prefix** | | The image prefix |
-| **--namespace** | directus | The image namespace (registry/username) |
-
 ----------
 
-## Building core images
+## Executing the build script
 
-We can build [core images](#core-images) using the command `tusk core`.
-
-### Options
-
-| Option | Required | Default | Description |
-|--|--|--|--|
-| **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
-| **--version** | Yes | | We can set the base image version that goes to the tag. |
-
-### Examples
-
-#### Build an apache image
+We can build [core images](#core-images) using the command `build --type core`.
 
 ```
-$ tusk core --kind apache --version v1
-...
-Successfully tagged directus/core:apache-v1
-```
+# Clone the repository
+git clone https://github.com/directus/docker.git
 
-----------
+# Open the repository directory
+cd docker
 
-## Building base images
-
-We can build [base images](#base-images) using the command `tusk base`.
-
-### Dependencies
-
-All base images depends on a core image, so we need either build a core image first or have have pull access to an already built one.
-
-> ⚠️ Note that the core image will follow the `namespace` and `prefix` options as well, so changing them means you'll need to also build your own core images.
-
-### Options
-
-| Option | Required | Default | Description |
-|--|--|--|--|
-| **--kind** | Yes | | What kind of image to build (apache, nginx, caddy...) |
-| **--version** | Yes | | Which version of core image to use |
-| **--project** | Yes | | What kind of image to build (apache, nginx, caddy...) |
-
-### Examples
-
-#### Build an api image based on apache
-
-```
-$ tusk base --project api --kind apache --version 1.0.0
-...
-Successfully tagged directus/api:base-apache-1.0.0
+# Invoke build script
+./bin/build --help
 ```
 
 ----------
 
 # Sandbox
 
-You can start a development "machine" if you don't have `tusk`, the requirements to run the build scripts (such as bash) and/or is on a Windows machine without WSL. This allows you to invoke and debug `tusk` tasks and bash scripts.
-
-All you need is `docker` and `docker-compose`.
-
-## Starting a sandbox with `tusk`
-
-```
-$ tusk dev
-...
-root@/directus $ _
-```
-
-## Starting a sandbox with `docker-compose`
-
-```
-$ docker-compose -f ./sandbox.yml run --rm sandbox
-...
-root@/directus $ _
-```
-
-----------
-
-## FAQ
-
-### How do I change my image username?
-
-Use `--namespace` to set the username and/or the registry.
-
-```
-$ tusk core --namespace wolfulus \
-            --kind apache \
-            --version latest
-...
-Successfully tagged wolfulus/core:apache-latest
-```
-
-### How to set another registry?
-
-Use `--namespace` to set the username and/or the registry.
-
-```
-$ tusk core --namespace registry.gitlab.com/wolfulus/d6s \
-            --kind apache \
-            --version latest
-...
-Successfully tagged registry.gitlab.com/wolfulus/d6s/core:apache-latest
-```
-
-### How do I set an image prefix?
-
-Use `--prefix` to set image prefixes.
-
-```
-$ tusk core --prefix hello- \
-            --kind apache \
-            --version latest
-...
-Successfully tagged directus/hello-core:apache-latest
-```
-
-### Can I set both namespace and prefix?
-
-Yes you can.
-
-```
-$ tusk core --namespace wolfulus \
-            --prefix directus- \
-            --kind apache \
-            --version latest
-...
-Successfully tagged wolfulus/directus-base:apache-latest
-```
-
-## How do I build a custom base image?
-
-### Select a core image or build your own
-
-```
-$ tusk core --namespace wolfulus \
-            --prefix my-custom-directus-
-            --kind apache \
-            --version 0.0.1
-...
-Successfully tagged wolfulus/my-custom-directus-core:apache-0.0.1
-```
-
-### Extend the core image and add your steps
-
-```docker
-FROM wolfulus/my-custom-directus-core:apache-0.0.1
-# Add custom steps
-```
-
-## How do I build a project using my base image?
-
-> ...
-
-## How do I install additional PHP modules?
-
-> ...
-
-## How do I install additional PHP extensions?
-
-> ...
-
-## How do I add my own extensions?
-
-> ...
+TODO: write about sandbox
 
 ----------
 

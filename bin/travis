@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -e
+
+push=true
+version=${TRAVIS_TAG}
+if [ "${version}" == "" ]; then
+  push=false
+  version=${TRAVIS_BRANCH:-"develop"}
+fi
+
+if [ $push == true ]; then
+  $(dirname $0)/build --type all --version ${version} --push
+else
+  $(dirname $0)/build --type all --version ${version}
+fi

@@ -9,4 +9,4 @@ services:
       TRAVIS_BRANCH: develop
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./:/sandbox
+      - ./:/sandcrate
