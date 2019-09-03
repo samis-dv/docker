@@ -58,6 +58,9 @@ function make_tags() {
   version=${3}
   prefix=${4}
   suffix=${5}
+  if [ "${version:0:1}" == "v" ]; then
+    prefix="${prefix}v"
+  fi
   call semver get major ${version} > /dev/null 2>&1
   if [ "$?" != "0" ]; then
     echo "${image}:${prefix}${version}-${kind}${suffix}"
@@ -130,7 +133,7 @@ function build_core() {
   do
     echo "Tagging ${image}"
     docker tag "${build_image}" "${image}"
-    if [ "$push" == "true" ]; then
+    if [ $push == true ]; then
       docker push ${image}
     fi
   done
@@ -202,12 +205,146 @@ function build_base() {
   do
     echo Tagging ${image}
     docker tag "${build_image}" "${image}"
-    if [ "$push" == "true" ]; then
+    if [ $push == true ]; then
       docker push ${image}
     fi
   done
 
   docker image rm "${build_image}"
+}
+
+#
+# Builds dist help
+#
+function build_dist_help() {
+  echo "
+    Performs builds of dist images.
+    NOTE: Core and base images should be already available/pulled.
+
+    Usage:
+
+      build --type dist --project app --kind node --base test --version v7.10.0
+
+    Options:
+
+      --project <project>   The project name. For example: api
+      --kind <kind>         The kind of image to build. For example: apache
+      --base <base>         The base image version to use.
+      --version <version>   The project version to fetch and build.
+      --ref <ref>           The git reference (can be a commit, a branch name or a tag).
+                            [default: \${version}]
+      --repository <repo>   The GitHub repository to fetch from (format: user/repo)
+                            [default: directus/\${project}]
+      --base_image <image>  The base image the base image should use.
+                            [default: directus/base:\${base}-\${project}-\${kind}]
+      --dist_image <image>  The dist image name.
+                            [default: directus/\${project}]
+
+    Flags:
+
+      --help                Shows this screen.
+      --push                Push the output images after each build.
+                            [default: not set]
+      --fresh               Fetches a clean repository and build from it. Takes longer.
+                            [default: not set]
+  " | cut -c 5-
+}
+
+#
+# Builds dist images
+#
+function build_dist() {
+  kind=$(argument kind)
+  base=$(argument base)
+  project=$(argument project)
+  version=$(argument version)
+  ref=$(argument ref "${version}")
+  base_image=$(argument base-image directus/base:${base}-${project}-${kind})
+  repository=$(argument repository "directus/${project}")
+  dist_image=$(argument dist-image "${repository}")
+  push=$(flagd push)
+  fresh=$(flagd fresh)
+
+  if ! [[ $repository =~ ^[_a-zA-Z0-9-]+/[_a-zA-Z0-9-]+$ ]]; then
+    echo "Invalid repository name: '${repository}'"
+    return 1
+  fi
+
+  show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
+
+  repository_url="https://github.com/${repository}.git"
+
+  workdir="./temp/${repository}/${ref}/"
+
+  if [ $fresh == true ]; then
+    if [ -d "${workdir}" ]; then
+      rm -rf "${workdir}"
+    fi
+    git clone --quiet "$repository_url" "${workdir}"
+  else
+    if ! [ -d "${workdir}" ]; then
+      git clone --quiet "$repository_url" "${workdir}"
+    fi
+  fi
+
+  cd "${workdir}"
+
+  repository_data=$(git ls-remote ${repository_url} -q ${ref} 2> /dev/null)
+  if [ "${repository_data}" == "" ]; then
+    if [ "$(git cat-file -t ${ref} 2> /dev/null)" == "commit" ]; then
+      repository_from="commit"
+      repository_commit="$(git rev-parse ${ref})"
+    else
+      echo "Invalid repository ref: ${ref}"
+      return 1
+    fi
+  else
+    repository_ref=$(echo ${repository_data} | awk '{print $2}')
+    repository_commit=$(echo ${repository_data} | awk '{print $1}')
+    if [[ $repository_ref =~ ^refs/heads/.* ]]; then
+      repository_from="branch"
+    elif [[ $repository_ref =~ ^refs/tags/.* ]]; then
+      repository_from="tag"
+    else
+      echo "Unknown repository reference: ${ref}"
+      return 1
+    fi
+  fi
+
+  echo "Building ${dist_image}:${version}-${kind} using a ${repository_from} (commit ${repository_commit})"
+  echo ""
+
+  git checkout ${repository_commit} > /dev/null 2>&1
+
+  temp_image="temp-${project}-${kind}:${repository_commit:0:8}"
+  image_path_kind="./docker/${kind}/Dockerfile"
+  image_path_root="./Dockerfile"
+
+  if ! [ -f ".dockerignore" ]; then
+    echo "**/.git" >> ".dockerignore"
+  fi
+
+  if [ -f "${image_path_kind}" ]; then
+    docker build --build-arg BASE_IMAGE=${base_image} -t ${temp_image} -f ${image_path_kind} .
+  elif [ -f "${image_path_root}" ]; then
+    docker build --build-arg BASE_IMAGE=${base_image} -t ${temp_image} -f ${image_path_root} .
+  else
+    echo "FROM ${base_image}" | docker build -t ${temp_image} -f - .
+  fi
+
+  output_images=$(make_tags ${dist_image} ${kind} ${version})
+
+  for image in $output_images
+  do
+    echo Tagging ${image}
+    docker tag "${temp_image}" "${image}"
+    if [ $push == true ]; then
+      docker push ${image}
+    fi
+  done
+
+  docker image rm ${temp_image}
+
 }
 
 #
@@ -252,7 +389,6 @@ function build_all_help() {
 # Builds all images
 #
 function build_all() {
-
   image_core=$(argument image-core directus/core)
   image_base=$(argument image-core directus/base)
   version=$(argument version)
@@ -295,7 +431,6 @@ function build_all() {
         ${push}
     done
   done
-
 }
 
 #
@@ -307,7 +442,7 @@ function main_help() {
 
     Usage:
 
-      build --type (all|core|base)
+      build --type (all|core|base|dist)
 
     Options:
       --help          Shows this screen.
