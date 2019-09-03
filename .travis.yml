@@ -22,5 +22,5 @@ branches:
   only:
     - master
     - develop
-    - /^\d+\.\d+\.\d+$/
-    - /^\d+\.\d+\.\d+-pre$/
+    - /^v\d+\.\d+\.\d+$/
+    - /^v\d+\.\d+\.\d+-pre$/
