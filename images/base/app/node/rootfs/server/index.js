@@ -10,7 +10,7 @@ async function main() {
 
   const server = fastify();
   const options = {
-    path: '/app/dist',
+    path: path.join(__dirname, 'dist'),
     port: process.env.DIRECTUS_SERVER_PORT || 80,
     host: process.env.DIRECTUS_SERVER_HOST || "0.0.0.0"
   };
