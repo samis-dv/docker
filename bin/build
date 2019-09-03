@@ -223,24 +223,29 @@ function build_dist_help() {
 
     Usage:
 
-      build --type base --kind apache --version v1.2.3
+      build --type dist --project app --kind node --base test --version v7.10.0
 
     Options:
 
-      --kind <kind>         The kind of image to build. For example: apache
       --project <project>   The project name. For example: api
-      --version <version>   The output images version. Semver compatible strings
-                            will output multiple images tags for major minor patch
-                            and prerelease.
-      --core <image>        The core image the base image should use.
-                            [default: directus/core:\${version}/\${kind}]
-      --image <image>       The base image name to use. This does NOT include tags.
-                            [default: directus/base]
+      --kind <kind>         The kind of image to build. For example: apache
+      --base <base>         The base image version to use.
+      --version <version>   The project version to fetch and build.
+      --ref <ref>           The git reference (can be a commit, a branch name or a tag).
+                            [default: \${version}]
+      --repository <repo>   The GitHub repository to fetch from (format: user/repo)
+                            [default: directus/\${project}]
+      --base_image <image>  The base image the base image should use.
+                            [default: directus/base:\${base}-\${project}-\${kind}]
+      --dist_image <image>  The dist image name.
+                            [default: directus/\${project}]
 
     Flags:
 
       --help                Shows this screen.
       --push                Push the output images after each build.
+                            [default: not set]
+      --fresh               Fetches a clean repository and build from it. Takes longer.
                             [default: not set]
   " | cut -c 5-
 }
@@ -252,8 +257,8 @@ function build_dist() {
   kind=$(argument kind)
   base=$(argument base)
   project=$(argument project)
-  ref=$(argument ref master)
-  version=$(argument version "${ref}")
+  version=$(argument version)
+  ref=$(argument ref "${version}")
   base_image=$(argument base-image directus/base:${base}-${project}-${kind})
   repository=$(argument repository "directus/${project}")
   dist_image=$(argument dist-image "${repository}")
