@@ -58,13 +58,13 @@ function make_tags() {
   version=${3}
   prefix=${4}
   suffix=${5}
-  if [ "${version:0:1}" == "v" ]; then
-    prefix="${prefix}v"
-  fi
   call semver get major ${version} > /dev/null 2>&1
   if [ "$?" != "0" ]; then
     echo "${image}:${prefix}${version}-${kind}${suffix}"
   else
+    if [ "${version:0:1}" == "v" ]; then
+      prefix="${prefix}v"
+    fi
     major="$(call semver get major ${version})"
     minor="${major}.$(call semver get minor ${version})"
     patch="${minor}.$(call semver get patch ${version})"
@@ -89,7 +89,7 @@ function build_core_help() {
 
     Usage:
 
-      build --type base --kind apache --version v1.2.3
+      build --type core --kind apache --version v1.2.3
 
     Options:
 
