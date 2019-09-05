@@ -1,0 +1,35 @@
+version: "3"
+services:
+  proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  database:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: "directus"
+      MYSQL_USER: "directus"
+      MYSQL_PASSWORD: "directus"
+      MYSQL_ROOT_PASSWORD: "directus"
+
+  api:
+    image: directus/api:v2-apache
+    environment:
+      VIRTUAL_HOST: "api.localtest.me"
+      DIRECTUS_DATABASE_HOST: "database"
+      DIRECTUS_DATABASE_PORT: "3306"
+      DIRECTUS_DATABASE_NAME: "directus"
+      DIRECTUS_DATABASE_USERNAME: "directus"
+      DIRECTUS_DATABASE_PASSWORD: "directus"
+    links:
+      - database:database
+
+  app:
+    image: directus/app:v7-node
+    environment:
+      VIRTUAL_HOST: "app.localtest.me"
+      DIRECTUS_APP_TITLE: "Example"
+      DIRECTUS_APP_URL: "http://api.localtest.me/_/"
