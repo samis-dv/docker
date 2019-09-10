@@ -2,8 +2,8 @@
 
 set -e
 
-root=$(cd $(dirname $0)/../; pwd)
-source $root/bin/source/argsf
+root=$(cd $(dirname ${0})/../; pwd)
+source ${root}/bin/source/argsf
 
 #
 # CLI header
@@ -25,14 +25,14 @@ function show_header() {
   set -e
 
   contents=""
-  if [ $has_figlet == true ]; then
-    if [ $has_details == true ]; then
+  if [ ${has_figlet} == true ]; then
+    if [ ${has_details} == true ]; then
       contents="$(figlet ${header})\n\n> ${details}\n"
     else
       contents="$(figlet ${header})\n"
     fi
   else
-    if [ $has_details == true ]; then
+    if [ ${has_details} == true ]; then
       contents="$(printf ">\n> [ ${header} ]\n>\n> ${details}\n>")\n"
     else
       contents="$(printf ">\n> [ ${header} ]\n>\n")\n"
@@ -46,7 +46,7 @@ function show_header() {
 # Call a script inside the bin folder
 #
 function call() {
-  $root/bin/extras/$1 ${@:2}
+  ${root}/bin/extras/${1} ${@:2}
 }
 
 #
@@ -80,6 +80,19 @@ function make_tags() {
 }
 
 #
+# Fetches the latest release
+#
+function fetch_latest_release() {
+  repository="${1}"
+  release=$(curl -fsSLI -o /dev/null -w "%{url_effective}\n" https://github.com/${repository}/releases/latest)
+  if [ "${release}" == "https://github.com/${repository}/releases" ]; then
+    >&2 echo "No releases found for repository \"${repository}\"."
+    return 1
+  fi
+  echo ${release##*/}
+}
+
+#
 # Build core help
 #
 function build_core_help() {
@@ -93,12 +106,17 @@ function build_core_help() {
 
     Options:
 
-      --kind <kind>         The kind of image to build. For example: apache
-      --version <version>   The output images version. Semver compatible strings
-                            will output multiple images tags for major minor patch
-                            and prerelease.
-      --image <image>       The base image name to use. This does NOT include tags.
-                            [default: directus/core]
+      Required:
+
+        --kind <kind>         The kind of image to build. For example: apache
+        --version <version>   The output images version. Semver compatible strings
+                              will output multiple images tags for major minor patch
+                              and prerelease.
+
+      Optional:
+
+        --image <image>       The base image name to use. This does NOT include tags.
+                              [default: directus/core]
 
     Flags:
 
@@ -118,7 +136,7 @@ function build_core() {
   push=$(flagd push)
 
   if ! [ -d $root/images/core/${kind}/ ]; then
-    echo "Unknown core: ${kind}"
+    >&2 echo "Unknown core: ${kind}"
     return 1
   fi
 
@@ -155,15 +173,20 @@ function build_base_help() {
 
     Options:
 
-      --kind <kind>         The kind of image to build. For example: apache
-      --project <project>   The project name. For example: api
-      --version <version>   The output images version. Semver compatible strings
-                            will output multiple images tags for major minor patch
-                            and prerelease.
-      --core <image>        The core image the base image should use.
-                            [default: directus/core:\${version}/\${kind}]
-      --image <image>       The base image name to use. This does NOT include tags.
-                            [default: directus/base]
+      Required: 
+
+        --kind <kind>         The kind of image to build. For example: apache
+        --project <project>   The project name. For example: api
+        --version <version>   The output images version. Semver compatible strings
+                              will output multiple images tags for major minor patch
+                              and prerelease.
+
+      Optional:
+
+        --core <image>        The core image the base image should use.
+                              [default: directus/core:\${version}/\${kind}]
+        --image <image>       The base image name to use. This does NOT include tags.
+                              [default: directus/base]
 
     Flags:
 
@@ -227,18 +250,25 @@ function build_dist_help() {
 
     Options:
 
-      --project <project>   The project name. For example: api
-      --kind <kind>         The kind of image to build. For example: apache
-      --base <base>         The base image version to use.
-      --version <version>   The project version to fetch and build.
-      --ref <ref>           The git reference (can be a commit, a branch name or a tag).
-                            [default: \${version}]
-      --repository <repo>   The GitHub repository to fetch from (format: user/repo)
-                            [default: directus/\${project}]
-      --base_image <image>  The base image the base image should use.
-                            [default: directus/base:\${base}-\${project}-\${kind}]
-      --dist_image <image>  The dist image name.
-                            [default: directus/\${project}]
+      Required: 
+
+        --kind <kind>         The kind of image to build. For example: apache
+        --project <project>   The project name. For example: api
+
+      Optional:
+
+        --version <version>   The project version to fetch and build.
+                              [default: latest]
+        --ref <ref>           The git reference (can be a commit, a branch name or a tag).
+                              [default: \${version}]
+        --base <base>         The base image version to use.
+                              [default: latest]
+        --repository <repo>   The GitHub repository to fetch from (format: user/repo)
+                              [default: directus/\${project}]
+        --base-image <image>  The base image the base image should use.
+                              [default: directus/base:\${base}-\${project}-\${kind}]
+        --dist-image <image>  The dist image name.
+                              [default: directus/\${project}]
 
     Flags:
 
@@ -255,19 +285,31 @@ function build_dist_help() {
 #
 function build_dist() {
   kind=$(argument kind)
-  base=$(argument base)
+  base=$(argument base latest)
   project=$(argument project)
-  version=$(argument version)
+  version=$(argument version "")
   ref=$(argument ref "${version}")
-  base_image=$(argument base-image directus/base:${base}-${project}-${kind})
   repository=$(argument repository "directus/${project}")
+  base_image=$(argument base-image "directus/base:${base}-${project}-${kind}")
   dist_image=$(argument dist-image "${repository}")
   push=$(flagd push)
   fresh=$(flagd fresh)
 
+  if [ "${base_image}" == "directus/base:latest-${project}-${kind}" ]; then
+    base=$(fetch_latest_release directus/docker)
+    base_image="directus/base:${base}-${project}-${kind}"
+  fi
+
   if ! [[ $repository =~ ^[_a-zA-Z0-9-]+/[_a-zA-Z0-9-]+$ ]]; then
     echo "Invalid repository name: '${repository}'"
     return 1
+  fi
+
+  if [ "${version}" == "" ]; then
+    version=$(fetch_latest_release ${repository})
+    if [ "${ref}" == "" ]; then
+      ref="${version}"
+    fi
   fi
 
   show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
@@ -372,9 +414,9 @@ function build_all_help() {
       --version <version>   The output images version. Semver compatible strings
                             will output multiple images tags for major minor patch
                             and prerelease.
-      --image_core <image>  The image namespace/name to use for core images.
+      --image-core <image>  The image namespace/name to use for core images.
                             [default: directus/core]
-      --image_base <image>  The image namespace/name to use for base images.
+      --image-base <image>  The image namespace/name to use for base images.
                             [default: directus/base]
 
     Flags:
