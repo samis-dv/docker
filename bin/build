@@ -147,6 +147,8 @@ function build_core() {
 
   docker build -t "${build_image}" $root/images/core/${kind}/
 
+  echo "Tags = ${output_images}"
+
   for image in $output_images
   do
     echo "Tagging ${image}"
@@ -173,7 +175,7 @@ function build_base_help() {
 
     Options:
 
-      Required: 
+      Required:
 
         --kind <kind>         The kind of image to build. For example: apache
         --project <project>   The project name. For example: api
@@ -224,6 +226,8 @@ function build_base() {
 
   docker build --build-arg CORE_IMAGE="${core}" -t "${build_image}" "$root/images/base/${project}/${kind}/"
 
+  echo "Tags = ${output_images}"
+
   for image in $output_images
   do
     echo Tagging ${image}
@@ -250,7 +254,7 @@ function build_dist_help() {
 
     Options:
 
-      Required: 
+      Required:
 
         --kind <kind>         The kind of image to build. For example: apache
         --project <project>   The project name. For example: api
@@ -375,6 +379,8 @@ function build_dist() {
   fi
 
   output_images=$(make_tags ${dist_image} ${kind} ${version})
+
+  echo "Tags = ${output_images}"
 
   for image in $output_images
   do

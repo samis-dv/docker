@@ -13,10 +13,11 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 #
 RUN \
   apt-get update && \
-  apt-get install -y git zip libpng-dev libzip-dev libxml2-dev  && \
+  apt-get install -y git zip libpng-dev libjpeg-dev libzip-dev libfreetype6-dev libxml2-dev && \
   rm -rf /var/lib/apt/lists/* && \
   a2enmod rewrite && \
   docker-php-ext-configure zip --with-libzip && \
+  docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
   docker-php-ext-install gd zip exif pdo pdo_mysql xml fileinfo
 
 #
