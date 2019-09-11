@@ -17,5 +17,6 @@ ONBUILD COPY --chown=www-data:www-data . /var/www/
 ONBUILD RUN \
   cd /var/www/ && \
   install-dependencies && \
+  composer require aws/aws-sdk-php && \
+  composer require league/flysystem-aws-s3-v3 && \
   ( find . -type d -name ".git" && find . -name ".gitignore" && find . -name ".gitmodules" ) | xargs rm -rf
-

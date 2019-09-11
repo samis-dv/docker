@@ -9,8 +9,8 @@ if [ "${version}" == "" ]; then
   version=${TRAVIS_BRANCH:-"develop"}
 fi
 
-if [ $push == true ]; then
-  $(dirname $0)/build --type all --version ${version} --push
+if [ ${push} == true ]; then
+  $(dirname ${0})/build --type all --version ${version} --push
 else
-  $(dirname $0)/build --type all --version ${version}
+  $(dirname ${0})/build --type all --version ${version}
 fi
