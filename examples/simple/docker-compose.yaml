@@ -21,6 +21,8 @@ services:
       MYSQL_USER: "directus"
       MYSQL_PASSWORD: "directus"
       MYSQL_ROOT_PASSWORD: "directus"
+    ports:
+      - 3306:3306
 
   #
   # Installer
