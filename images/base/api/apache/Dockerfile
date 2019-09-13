@@ -10,6 +10,10 @@ FROM ${CORE_IMAGE}
 
 ENV DIRECTUS_USE_ENV=1
 
+COPY ./rootfs/ /
+RUN chmod +x /usr/local/bin/api-entrypoint && \
+  chmod +x /usr/local/bin/argsf
+
 #
 # Copy files
 #
@@ -20,3 +24,8 @@ ONBUILD RUN \
   composer require aws/aws-sdk-php && \
   composer require league/flysystem-aws-s3-v3 && \
   ( find . -type d -name ".git" && find . -name ".gitignore" && find . -name ".gitmodules" ) | xargs rm -rf
+
+
+ENTRYPOINT ["api-entrypoint"]
+
+CMD ["apache2-foreground"]
