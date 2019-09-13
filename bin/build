@@ -267,7 +267,9 @@ function build_dist_help() {
                               [default: \${version}]
         --base <base>         The base image version to use.
                               [default: latest]
-        --repository <repo>   The GitHub repository to fetch from (format: user/repo)
+        --repository <repo>   The GitHub repository to fetch from (format: user/repo).
+                              This can also be a local machine folder containing the git
+                              repository.
                               [default: directus/\${project}]
         --base-image <image>  The base image the base image should use.
                               [default: directus/base:\${base}-\${project}-\${kind}]
@@ -304,63 +306,83 @@ function build_dist() {
     base_image="directus/base:${base}-${project}-${kind}"
   fi
 
-  if ! [[ $repository =~ ^[_a-zA-Z0-9-]+/[_a-zA-Z0-9-]+$ ]]; then
+  is_dir=false
+  if [ -d "${repository}" ]; then
+    is_dir=true
+  elif ! [[ $repository =~ ^[_a-zA-Z0-9-]+/[_a-zA-Z0-9-]+$ ]]; then
     echo "Invalid repository name: '${repository}'"
     return 1
   fi
 
-  if [ "${version}" == "" ]; then
-    version=$(fetch_latest_release ${repository})
-    if [ "${ref}" == "" ]; then
-      ref="${version}"
+  if [ $is_dir == false ]; then
+    if [ "${version}" == "" ]; then
+      version=$(fetch_latest_release ${repository})
+      if [ "${ref}" == "" ]; then
+        ref="${version}"
+      fi
     fi
-  fi
 
-  show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
+    repository_url="https://github.com/${repository}.git"
+    workdir="./temp/${repository}/${ref}/"
 
-  repository_url="https://github.com/${repository}.git"
-
-  workdir="./temp/${repository}/${ref}/"
-
-  if [ $fresh == true ]; then
-    if [ -d "${workdir}" ]; then
-      rm -rf "${workdir}"
-    fi
-    git clone --quiet "$repository_url" "${workdir}"
-  else
-    if ! [ -d "${workdir}" ]; then
+    if [ $fresh == true ]; then
+      if [ -d "${workdir}" ]; then
+        rm -rf "${workdir}"
+      fi
       git clone --quiet "$repository_url" "${workdir}"
+    else
+      if ! [ -d "${workdir}" ]; then
+        git clone --quiet "$repository_url" "${workdir}"
+      fi
     fi
+  else
+    if [ "${version}" == "" ]; then
+      echo "Please set a version when working with local repositories"
+      exit 1
+    fi
+
+    repository_url="$(git remote get-url origin)"
+    workdir="${repository}"
   fi
 
   cd "${workdir}"
 
-  repository_data=$(git ls-remote ${repository_url} -q ${ref} 2> /dev/null)
-  if [ "${repository_data}" == "" ]; then
-    if [ "$(git cat-file -t ${ref} 2> /dev/null)" == "commit" ]; then
-      repository_from="commit"
-      repository_commit="$(git rev-parse ${ref})"
+  show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
+
+  if [ $is_dir == false ]; then
+    repository_data=$(git ls-remote ${repository_url} -q ${ref} 2> /dev/null)
+    if [ "${repository_data}" == "" ]; then
+      if [ "$(git cat-file -t ${ref} 2> /dev/null)" == "commit" ]; then
+        repository_from="commit"
+        repository_commit="$(git rev-parse ${ref})"
+      else
+        echo "Invalid repository ref: ${ref}"
+        return 1
+      fi
     else
-      echo "Invalid repository ref: ${ref}"
-      return 1
+      repository_ref=$(echo ${repository_data} | awk '{print $2}')
+      repository_commit=$(echo ${repository_data} | awk '{print $1}')
+      if [[ $repository_ref =~ ^refs/heads/.* ]]; then
+        repository_from="branch"
+      elif [[ $repository_ref =~ ^refs/tags/.* ]]; then
+        repository_from="tag"
+      else
+        echo "Unknown repository reference: ${ref}"
+        return 1
+      fi
     fi
   else
-    repository_ref=$(echo ${repository_data} | awk '{print $2}')
-    repository_commit=$(echo ${repository_data} | awk '{print $1}')
-    if [[ $repository_ref =~ ^refs/heads/.* ]]; then
-      repository_from="branch"
-    elif [[ $repository_ref =~ ^refs/tags/.* ]]; then
-      repository_from="tag"
-    else
-      echo "Unknown repository reference: ${ref}"
-      return 1
-    fi
+    repository_ref="local"
+    repository_from="local"
+    repository_commit="local"
   fi
 
   echo "Building ${dist_image}:${version}-${kind} using a ${repository_from} (commit ${repository_commit})"
   echo ""
 
-  git checkout ${repository_commit} > /dev/null 2>&1
+  if [ $is_dir == false ]; then
+    git checkout ${repository_commit} > /dev/null 2>&1
+  fi
 
   temp_image="temp-${project}-${kind}:${repository_commit:0:8}"
   image_path_kind="./docker/${kind}/Dockerfile"
@@ -368,6 +390,7 @@ function build_dist() {
 
   if ! [ -f ".dockerignore" ]; then
     echo "**/.git" >> ".dockerignore"
+    echo "**/.vscode" >> ".dockerignore"
   fi
 
   if [ -f "${image_path_kind}" ]; then
@@ -392,7 +415,6 @@ function build_dist() {
   done
 
   docker image rm ${temp_image}
-
 }
 
 #

@@ -20,7 +20,7 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: container support is *HIGHLY* experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
+> **Warning**: container support is _HIGHLY_ experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
 
 # Overview
 
@@ -91,7 +91,7 @@ ONBUILD COPY . .
 
 <img src=".github\images\images.svg" width="300" />
 
-We'll cover below what each image does and when to  use them.
+We'll cover below what each image does and when to use them.
 
 ## Dist images
 
@@ -109,11 +109,11 @@ directus/${project}:${version}-${kind}
 
 #### Example
 
-| Variable | Value |
-|--|--|
-| **project** | api |
-| **kind** | apache |
-| **version** | 3.2.1 |
+| Variable    | Value  |
+| ----------- | ------ |
+| **project** | api    |
+| **kind**    | apache |
+| **version** | 3.2.1  |
 
 ```
 directus/api:3.2.1-apache
@@ -141,10 +141,10 @@ directus/base:${version}-${project}-${kind}
 
 #### Example
 
-| Variable | Value |
-|--|--|
-| **project** | app |
-| **kind** | node |
+| Variable    | Value |
+| ----------- | ----- |
+| **project** | app   |
+| **kind**    | node  |
 | **version** | 1.2.3 |
 
 ```
@@ -169,10 +169,10 @@ directus/core:${version}-${kind}
 
 #### Example
 
-| Variable | Value |
-|--|--|
-| **version** | 1.2.3 |
-| **kind** | apache |
+| Variable    | Value  |
+| ----------- | ------ |
+| **version** | 1.2.3  |
+| **kind**    | apache |
 
 ```
 directus/core:1.2.3-apache
@@ -187,11 +187,13 @@ In most cases you'll not need to build anything in this repository because we al
 - [Docker](https://docs.docker.com/install/)
 - bash
 
-----------
+---
 
 ## Executing the build script
 
 We can build [core images](#core-images) using the command `build --type core`.
+
+> Note: If you're getting "-A: invalid option" issues, try updating your bash console. OSX for example ships with older bash versions. These scripts will only work on bash 4 or newer.
 
 ```
 # Clone the repository
@@ -204,13 +206,13 @@ cd docker
 ./bin/build --help
 ```
 
-----------
+---
 
 # Sandbox
 
 TODO: write about sandbox
 
-----------
+---
 
 <p align="center">
   Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2019, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.

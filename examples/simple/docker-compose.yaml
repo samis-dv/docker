@@ -1,0 +1,99 @@
+version: "3"
+services:
+  #
+  # Load balancer to accept requests from app and app on port 80
+  # based on the requested hostname
+  #
+  proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  #
+  # Database
+  #
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: "directus"
+      MYSQL_USER: "directus"
+      MYSQL_PASSWORD: "directus"
+      MYSQL_ROOT_PASSWORD: "directus"
+
+  #
+  # Installer
+  # This is our installer container, that we'll run only to setup the
+  # database for the first time
+  #
+  installer:
+    image: directus/api:v2-apache
+    restart: "no"
+    # True because this is not meant to run automatically.
+    # Setting to true makes it exit successfully on `docker-compose up`
+    command: "true"
+    environment:
+      DIRECTUS_DATABASE_HOST: "mysql"
+      DIRECTUS_DATABASE_PORT: "3306"
+      DIRECTUS_DATABASE_NAME: "directus"
+      DIRECTUS_DATABASE_USERNAME: "root"
+      DIRECTUS_DATABASE_PASSWORD: "directus"
+
+  #
+  # API instance.
+  # This should serve our api requests and won't work before database
+  # is properly installed by running the installer.
+  #
+  api:
+    image: directus/api:v2-apache
+    environment:
+      # Load balancer
+      VIRTUAL_HOST: "api.localtest.me"
+
+      # App
+      DIRECTUS_APP_ENV: "production"
+      DIRECTUS_APP_TIMEZONE: "America/Sao_Paulo"
+
+      # These are now required, make sure to always set
+      # to something unique while in production
+      DIRECTUS_AUTH_PUBLICKEY: "some random secret"
+      DIRECTUS_AUTH_SECRETKEY: "another random secret"
+
+      # Database
+      DIRECTUS_DATABASE_HOST: "mysql"
+      DIRECTUS_DATABASE_PORT: "3306"
+      DIRECTUS_DATABASE_NAME: "directus"
+      DIRECTUS_DATABASE_USERNAME: "directus"
+      DIRECTUS_DATABASE_PASSWORD: "directus"
+
+      #
+      # These are highly recommended for proper cloud native
+      # installations, but not in this example
+      #
+      # Storage
+      #DIRECTUS_STORAGE_ADAPTER: "s3"
+      #DIRECTUS_STORAGE_ROOT: "/images/"
+      #DIRECTUS_STORAGE_ROOTURL: "http://cdn.localtest.me/images"
+      #DIRECTUS_STORAGE_THUMBROOT: "/images/thumbs/"
+      #DIRECTUS_STORAGE_KEY: "storage_key"
+      #DIRECTUS_STORAGE_SECRET: "storage_secret"
+      #DIRECTUS_STORAGE_REGION: "us-east-1"
+      #DIRECTUS_STORAGE_BUCKET: "cdn.localtest.me"
+
+    links:
+      - mysql:mysql
+
+  #
+  # APP instance.
+  # This is our graphical management interface.
+  #
+  app:
+    image: directus/app:v7-node
+    environment:
+      # Load balancer
+      VIRTUAL_HOST: "app.localtest.me"
+
+      # Endpoints
+      DIRECTUS_APP_TITLE: "Example"
+      DIRECTUS_APP_URL: "http://api.localtest.me/_/"
