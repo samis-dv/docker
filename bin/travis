@@ -2,15 +2,10 @@
 
 set -e
 
-push=true
-version=${TRAVIS_TAG}
-if [ "${version}" == "" ]; then
-  push=false
-  version=${TRAVIS_BRANCH:-"develop"}
-fi
+version=${TRAVIS_TAG:-${TRAVIS_BRANCH:-"develop"}}
 
-if [ ${push} == true ]; then
-  $(dirname ${0})/build --type all --version ${version} --push
+if [ "${TRAVIS_PULL_REQUEST}" == "true" ]; then
+  $(dirname ${0})/build --type all --version "${version}"
 else
-  $(dirname ${0})/build --type all --version ${version}
+  $(dirname ${0})/build --type all --version "${version}" --push
 fi
