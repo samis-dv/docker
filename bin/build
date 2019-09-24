@@ -381,7 +381,8 @@ function build_dist() {
   echo ""
 
   if [ $is_dir == false ]; then
-    git checkout ${repository_commit} > /dev/null 2>&1
+    git fetch --all
+    git checkout ${repository_commit}
   fi
 
   temp_image="temp-${project}-${kind}:${repository_commit:0:8}"
