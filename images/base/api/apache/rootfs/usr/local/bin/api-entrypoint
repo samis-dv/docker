@@ -10,7 +10,7 @@ function install() {
 
   install_title=$(argument title "${DIRECTUS_INSTALL_TITLE:-Directus}")
   install_email=$(argument email "${DIRECTUS_INSTALL_EMAIL:-"admin@example.com"}")
-  install_password=$(argument password "${DIRECTUS_INSTALL_PASSWORD:-$(cat /dev/random | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)}")
+  install_password=$(argument password "${DIRECTUS_INSTALL_PASSWORD:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)}")
 
   install_force=$(flagd force)
   if [ "${DIRECTUS_INSTALL_FORCE:-0}" != "0" ]; then
