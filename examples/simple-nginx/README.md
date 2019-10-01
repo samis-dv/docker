@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Make sure docker and docker-compose is available
-- Make sure nothing is running on port 8080, 8090 and 3306
+- Make sure nothing is running on port 80 and 3306
   - If necessary, adjust the exposed ports on docker-compose.yml file
 
 ## Make sure you have the latest images
@@ -42,5 +42,5 @@ docker-compose run api install --email your@email.com
 
 ## Accessing
 
-- [api at http://localhost:8080/](http://localhost:8080/)
-- [app at http://localhost:8090/](http://localhost:8090/)
+- [api at http://api.localtest.me/](http://api.localtest.me/)
+- [app at http://app.localtest.me/](http://app.localtest.me/)

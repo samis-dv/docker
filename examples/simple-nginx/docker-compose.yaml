@@ -1,6 +1,17 @@
 version: "3"
 services:
   #
+  # Load balancer to accept requests from app and app on port 80
+  # based on the requested hostname
+  #
+  proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  #
   # Database
   #
   mysql:
@@ -20,9 +31,10 @@ services:
   #
   api:
     image: directus/api:v2-apache
-    ports:
-      - "8080:80"
     environment:
+      # Load balancer
+      VIRTUAL_HOST: "api.localtest.me"
+
       # App
       DIRECTUS_APP_ENV: "production"
       DIRECTUS_APP_TIMEZONE: "America/Sao_Paulo"
@@ -38,6 +50,21 @@ services:
       DIRECTUS_DATABASE_NAME: "directus"
       DIRECTUS_DATABASE_USERNAME: "directus"
       DIRECTUS_DATABASE_PASSWORD: "directus"
+
+      #
+      # These are highly recommended for proper cloud native
+      # installations, but not in this example
+      #
+      # Storage
+      #DIRECTUS_STORAGE_ADAPTER: "s3"
+      #DIRECTUS_STORAGE_ROOT: "/images/"
+      #DIRECTUS_STORAGE_ROOTURL: "http://cdn.localtest.me/images"
+      #DIRECTUS_STORAGE_THUMBROOT: "/images/thumbs/"
+      #DIRECTUS_STORAGE_KEY: "storage_key"
+      #DIRECTUS_STORAGE_SECRET: "storage_secret"
+      #DIRECTUS_STORAGE_REGION: "us-east-1"
+      #DIRECTUS_STORAGE_BUCKET: "cdn.localtest.me"
+
     links:
       - mysql:mysql
 
@@ -47,9 +74,10 @@ services:
   #
   app:
     image: directus/app:v7-node
-    ports:
-      - "8090:80"
     environment:
+      # Load balancer
+      VIRTUAL_HOST: "app.localtest.me"
+
       # Endpoints
       DIRECTUS_APP_TITLE: "Example"
-      DIRECTUS_APP_URL: "http://localhost:8080/_/"
+      DIRECTUS_APP_URL: "http://api.localtest.me/_/"
