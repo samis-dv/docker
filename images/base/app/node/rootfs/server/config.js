@@ -38,10 +38,12 @@ module.exports = {
         [process.env[`${prefix}${key}${urlSuffix}`]]:
           process.env[`${prefix}${key}${titleSuffix}`]
       }))
-      .reduce((prev, current) => Object.assign(prev, current));
+      .reduce((prev, current) => Object.assign(prev, current), []);
 
-    if (Object.values(entries).length == 0) {
-      return "../_/";
+    if (!entries.length) {
+      entries.push({
+        "../_/": "API"
+      });
     }
 
     const defaultValue = {
