@@ -11,7 +11,11 @@ module.exports = {
       new Set(
         Object.keys(process.env)
           .map(key => key.toUpperCase())
-          .filter(key => key.startsWith(prefix) && (key.endsWith(titleSuffix) || key.endsWith(urlSuffix)))
+          .filter(
+            key =>
+              key.startsWith(prefix) &&
+              (key.endsWith(titleSuffix) || key.endsWith(urlSuffix))
+          )
           .map(key => {
             const k = key.substr(prefix.length);
             if (k.endsWith(urlSuffix)) {
@@ -24,11 +28,17 @@ module.exports = {
       )
     );
 
-    const entries = keys.filter(key =>
-      (`${prefix}${key}${titleSuffix}` in process.env && `${prefix}${key}${urlSuffix}` in process.env)
-    ).map(key => ({
-      [process.env[`${prefix}${key}${urlSuffix}`]]: process.env[`${prefix}${key}${titleSuffix}`]
-    })).reduce((prev, current) => Object.assign(prev, current));
+    const entries = keys
+      .filter(
+        key =>
+          `${prefix}${key}${titleSuffix}` in process.env &&
+          `${prefix}${key}${urlSuffix}` in process.env
+      )
+      .map(key => ({
+        [process.env[`${prefix}${key}${urlSuffix}`]]:
+          process.env[`${prefix}${key}${titleSuffix}`]
+      }))
+      .reduce((prev, current) => Object.assign(prev, current));
 
     if (Object.values(entries).length == 0) {
       return "../_/";
@@ -38,7 +48,8 @@ module.exports = {
       api: entries,
       allowOtherAPI: "DIRECTUS_ALLOW_OTHER_API" in process.env || false,
       routerMode: process.env.DIRECTUS_ROUTER_MODE || "hash",
-      routerBaseUrl: process.env.DIRECTUS_ROUTER_BASE_URL || "/"
+      routerBaseUrl: process.env.DIRECTUS_ROUTER_BASE_URL || "/",
+      defaultLocale: process.env.DIRECTUS_DEFAULT_LOCALE || "en-US"
     };
 
     return defaultValue;
@@ -49,7 +60,8 @@ module.exports = {
    */
   get() {
     const config = this.data();
-    return `(function(){window.__DirectusConfig__=${JSON.stringify(config)}})();`;
-  },
+    return `(function(){window.__DirectusConfig__=${JSON.stringify(
+      config
+    )}})();`;
+  }
 };
-
