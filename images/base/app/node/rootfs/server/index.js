@@ -26,7 +26,9 @@ async function main() {
 
   server.get("/config.js", async (_, res) => {
     try {
-      res.header("Content-Type", "text/javascript").send(await config.get());
+      res
+        .header("Content-Type", "text/javascript; charset=utf8")
+        .send(await config.get());
     } catch (err) {
       console.log(chalk.red(err.stack));
       console.log(chalk.red(err.message));
