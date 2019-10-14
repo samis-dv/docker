@@ -1,4 +1,4 @@
-# Simple
+# Redis Minio/S3
 
 ## Prerequisites
 
