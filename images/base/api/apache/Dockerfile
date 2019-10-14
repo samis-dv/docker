@@ -23,8 +23,8 @@ ONBUILD RUN \
   install-dependencies && \
   composer require aws/aws-sdk-php && \
   composer require league/flysystem-aws-s3-v3 && \
+  pecl install redis && docker-php-ext-enable redis && \
   ( find . -type d -name ".git" && find . -name ".gitignore" && find . -name ".gitmodules" ) | xargs rm -rf
-
 
 ENTRYPOINT ["api-entrypoint"]
 
