@@ -37,7 +37,7 @@ docker-compose run api install --email your@email.com
 Using default email (admin@example.com) and a random password
 
 ```
-docker-compose run api install --email your@email.com
+docker-compose run api install
 ```
 
 ## Accessing
