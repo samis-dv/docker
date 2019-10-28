@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+root=$(cd $(dirname ${0})/../; pwd)
+source ${root}/bin/source/argsf
+
+namespace=$(argument namespace directus)
+prefix=$(argument prefix "")
+
+${root}/bin/build --type dist --kind apache --project api --dist-image ${namespace}/${prefix}app --channel yolo
+${root}/bin/build --type dist --kind node --project app --dist-image ${namespace}/${prefix}api --channel yolo
+

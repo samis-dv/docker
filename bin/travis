@@ -8,4 +8,8 @@ if [ "${TRAVIS_PULL_REQUEST}" == "true" ]; then
   $(dirname ${0})/build --type all --version "${version}"
 else
   $(dirname ${0})/build --type all --version "${version}" --push
+  if [ "${TRAVIS_TAG}" != "" ]; then
+    $(dirname ${0})/build --type dist --kind apache --project api --dist-image directus/app --channel yolo --push
+    $(dirname ${0})/build --type dist --kind node --project app --dist-image directus/api --channel yolo --push
+  fi
 fi

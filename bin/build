@@ -4,6 +4,7 @@ set -e
 
 root=$(cd $(dirname ${0})/../; pwd)
 source ${root}/bin/source/argsf
+source ${root}/bin/source/utils
 
 #
 # CLI header
@@ -42,55 +43,6 @@ function show_header() {
   echo -e "\e[32m${contents}\e[0m"
 }
 
-#
-# Call a script inside the bin folder
-#
-function call() {
-  ${root}/bin/extras/${1} ${@:2}
-}
-
-#
-# Makes a set of tags
-#
-function make_tags() {
-  image=${1}
-  kind=${2}
-  version=${3}
-  prefix=${4}
-  suffix=${5}
-  call semver get major ${version} > /dev/null 2>&1
-  if [ "$?" != "0" ]; then
-    echo "${image}:${prefix}${version}-${kind}${suffix}"
-  else
-    if [ "${version:0:1}" == "v" ]; then
-      prefix="${prefix}v"
-    fi
-    major="$(call semver get major ${version})"
-    minor="${major}.$(call semver get minor ${version})"
-    patch="${minor}.$(call semver get patch ${version})"
-    prerel="${patch}-$(call semver get prerel ${version})"
-    if [ "${prerel}" != "${patch}-" ]; then
-      echo "${image}:${prefix}${prerel}-${kind}${suffix}"
-    else
-      echo "${image}:${prefix}${major}-${kind}${suffix}"
-      echo "${image}:${prefix}${minor}-${kind}${suffix}"
-      echo "${image}:${prefix}${patch}-${kind}${suffix}"
-    fi
-  fi
-}
-
-#
-# Fetches the latest release
-#
-function fetch_latest_release() {
-  repository="${1}"
-  release=$(curl -fsSLI -o /dev/null -w "%{url_effective}\n" https://github.com/${repository}/releases/latest)
-  if [ "${release}" == "https://github.com/${repository}/releases" ]; then
-    >&2 echo "No releases found for repository \"${repository}\"."
-    return 1
-  fi
-  echo ${release##*/}
-}
 
 #
 # Build core help
@@ -275,6 +227,12 @@ function build_dist_help() {
                               [default: directus/base:\${base}-\${project}-\${kind}]
         --dist-image <image>  The dist image name.
                               [default: directus/\${project}]
+        --channel <channel>   The channel to add to the image tags (stable, unstable,
+                              canary).
+                              [default: ""]
+        --hotfix <id>         The build is a docker adjustment and a build should be
+                              appended to the end of the tag.
+                              [default: ""]
 
     Flags:
 
@@ -300,6 +258,8 @@ function build_dist() {
   dist_image=$(argument dist-image "${repository}")
   push=$(flagd push)
   fresh=$(flagd fresh)
+  channel=$(argument channel "")
+  hotfix=$(argument hotfix "")
 
   if [ "${base_image}" == "directus/base:latest-${project}-${kind}" ]; then
     base=$(fetch_latest_release directus/docker)
@@ -346,6 +306,14 @@ function build_dist() {
   fi
 
   cd "${workdir}"
+
+  if [ "${channel}" != "" ]; then
+    version=${version}-${channel}
+  fi
+
+  if [ "${hotfix}" != "" ]; then
+    version=${version}+hotfix-${hotfix}
+  fi
 
   show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
 
