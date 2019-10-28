@@ -75,25 +75,25 @@ if [ "${command}" == "install" ] || [ "${DIRECTUS_INSTALL}" == "auto" ]; then
 fi
 
 if [ "${command}" == "apache2-foreground" ]; then
+  if [ "${DIRECTUS_USE_ENV}" != "0" ]; then
+    if [ "${DIRECTUS_AUTH_SECRETKEY}" == "" ]; then
+      echo "Missing required DIRECTUS_AUTH_SECRETKEY environment variable."
+      echo "> Please refer to docs if unsure what to do in this case."
+      exit 1
+    fi
 
-  if [ "${DIRECTUS_AUTH_SECRETKEY}" == "" ]; then
-    echo "Missing required DIRECTUS_AUTH_SECRETKEY environment variable."
-    echo "> Please refer to docs if unsure what to do in this case."
-    exit 1
+    if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "" ]; then
+      echo "Missing required DIRECTUS_AUTH_PUBLICKEY environment variable."
+      echo "> Please refer to docs if unsure what to do in this case."
+      exit 1
+    fi
+
+    if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "${DIRECTUS_AUTH_SECRETKEY}" ]; then
+      echo "DIRECTUS_AUTH_PUBLICKEY value cannot be equal to DIRECTUS_AUTH_SECRETKEY."
+      echo "> Please refer to docs if unsure what to do in this case."
+      exit 1
+    fi
   fi
-
-  if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "" ]; then
-    echo "Missing required DIRECTUS_AUTH_PUBLICKEY environment variable."
-    echo "> Please refer to docs if unsure what to do in this case."
-    exit 1
-  fi
-
-  if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "${DIRECTUS_AUTH_SECRETKEY}" ]; then
-    echo "DIRECTUS_AUTH_PUBLICKEY value cannot be equal to DIRECTUS_AUTH_SECRETKEY."
-    echo "> Please refer to docs if unsure what to do in this case."
-    exit 1
-  fi
-
 fi
 
 # Forward commands
