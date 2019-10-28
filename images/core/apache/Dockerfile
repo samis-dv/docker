@@ -25,6 +25,7 @@ RUN \
 #
 COPY ./rootfs/ /
 RUN \
+  chmod +x /usr/local/bin/php-ini-add && \
   chmod +x /usr/local/bin/docker-entrypoint && \
   chmod +x /usr/local/bin/install-dependencies && \
   chmod +x /usr/local/bin/install-composer && install-composer && \

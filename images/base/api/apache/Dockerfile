@@ -10,6 +10,11 @@ FROM ${CORE_IMAGE}
 
 ENV DIRECTUS_USE_ENV=1
 
+# Image specific tweaks
+RUN pecl install redis && docker-php-ext-enable redis && \
+  php-ini-add "memory_limit=512M"
+
+# Image files
 COPY ./rootfs/ /
 RUN chmod +x /usr/local/bin/api-entrypoint && \
   chmod +x /usr/local/bin/argsf
@@ -23,7 +28,6 @@ ONBUILD RUN \
   install-dependencies && \
   composer require aws/aws-sdk-php && \
   composer require league/flysystem-aws-s3-v3 && \
-  pecl install redis && docker-php-ext-enable redis && \
   ( find . -type d -name ".git" && find . -name ".gitignore" && find . -name ".gitmodules" ) | xargs rm -rf
 
 ENTRYPOINT ["api-entrypoint"]
