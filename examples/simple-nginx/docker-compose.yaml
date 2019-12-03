@@ -65,6 +65,10 @@ services:
       #DIRECTUS_STORAGE_REGION: "us-east-1"
       #DIRECTUS_STORAGE_BUCKET: "cdn.localtest.me"
 
+    # Uploads gets saved in uploads folder
+    volumes:
+      - ./uploads/:/var/www/public/uploads/
+
     links:
       - mysql:mysql
 
