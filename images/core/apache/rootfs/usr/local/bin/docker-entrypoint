@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Check and install dependencies
-install-dependencies
-
-# Forward commands
-exec /usr/local/bin/docker-php-entrypoint $@

@@ -43,190 +43,33 @@ function show_header() {
   echo -e "\e[32m${contents}\e[0m"
 }
 
-
-#
-# Build core help
-#
-function build_core_help() {
-  echo "
-    Performs builds of core images.
-    NOTE: Core images should be already available/pulled.
-
-    Usage:
-
-      build --type core --kind apache --version v1.2.3
-
-    Options:
-
-      Required:
-
-        --kind <kind>         The kind of image to build. For example: apache
-        --version <version>   The output images version. Semver compatible strings
-                              will output multiple images tags for major minor patch
-                              and prerelease.
-
-      Optional:
-
-        --image <image>       The base image name to use. This does NOT include tags.
-                              [default: directus/core]
-
-    Flags:
-
-      --help                Shows this screen.
-      --push                Push the output images after each build.
-                            [default: not set]
-  " | cut -c 5-
-}
-
-#
-# Builds core images
-#
-function build_core() {
-  kind=$(argument kind)
-  image=$(argument image directus/core)
-  version=$(argument version)
-  push=$(flagd push)
-
-  if ! [ -d $root/images/core/${kind}/ ]; then
-    >&2 echo "Unknown core: ${kind}"
-    return 1
-  fi
-
-  show_header "build:core" "kind='${kind}', version='${version}'"
-
-  build_image="core-${kind}-temp:${version}"
-  output_images=$(make_tags ${image} ${kind} ${version})
-
-  docker build -t "${build_image}" $root/images/core/${kind}/
-
-  echo "Tags = ${output_images}"
-
-  for image in $output_images
-  do
-    echo "Tagging ${image}"
-    docker tag "${build_image}" "${image}"
-    if [ $push == true ]; then
-      docker push ${image}
-    fi
-  done
-
-  docker image rm "${build_image}"
-}
-
-#
-# Build base help
-#
-function build_base_help() {
-  echo "
-    Performs builds of base images.
-    NOTE: Core images should be already available/pulled.
-
-    Usage:
-
-      build --type base --kind apache --version v1.2.3
-
-    Options:
-
-      Required:
-
-        --kind <kind>         The kind of image to build. For example: apache
-        --project <project>   The project name. For example: api
-        --version <version>   The output images version. Semver compatible strings
-                              will output multiple images tags for major minor patch
-                              and prerelease.
-
-      Optional:
-
-        --core <image>        The core image the base image should use.
-                              [default: directus/core:\${version}/\${kind}]
-        --image <image>       The base image name to use. This does NOT include tags.
-                              [default: directus/base]
-
-    Flags:
-
-      --help                Shows this screen.
-      --push                Push the output images after each build.
-                            [default: not set]
-  " | cut -c 5-
-}
-
-#
-# Builds base images
-#
-function build_base() {
-  kind=$(argument kind)
-  version=$(argument version)
-  core=$(argument core directus/core:${version}-${kind})
-  project=$(argument project)
-  image=$(argument image directus/base)
-  push=$(flagd push)
-
-  if ! [ -d $root/images/base/${project}/ ]; then
-    echo "Unknown project: ${project}"
-    return 1
-  fi
-
-  if ! [ -d $root/images/base/${project}/${kind}/ ]; then
-    echo "Unknown project kind: ${project}/${kind}"
-    return 1
-  fi
-
-  show_header "build:base" "project='${project}', kind='${kind}', version='${version}'"
-
-  build_image="${project}-${kind}-temp:${version}"
-  output_images=$(make_tags ${image} ${project}-${kind} ${version})
-
-  docker build --build-arg CORE_IMAGE="${core}" -t "${build_image}" "$root/images/base/${project}/${kind}/"
-
-  echo "Tags = ${output_images}"
-
-  for image in $output_images
-  do
-    echo Tagging ${image}
-    docker tag "${build_image}" "${image}"
-    if [ $push == true ]; then
-      docker push ${image}
-    fi
-  done
-
-  docker image rm "${build_image}"
-}
-
 #
 # Builds dist help
 #
-function build_dist_help() {
+function build_help() {
   echo "
-    Performs builds of dist images.
-    NOTE: Core and base images should be already available/pulled.
+    Performs builds of images.
 
     Usage:
 
-      build --type dist --project app --kind node --base test --version v7.10.0
+      build --version v8.0.0
 
     Options:
 
-      Required:
-
-        --kind <kind>         The kind of image to build. For example: apache
-        --project <project>   The project name. For example: api
-
       Optional:
 
+        --kind <kind>         The kind of image to build. For example: apache
+                              [default: apache]
         --version <version>   The project version to fetch and build.
                               [default: latest]
         --ref <ref>           The git reference (can be a commit, a branch name or a tag).
                               [default: \${version}]
-        --base <base>         The base image version to use.
-                              [default: latest]
         --repository <repo>   The GitHub repository to fetch from (format: user/repo).
                               This can also be a local machine folder containing the git
                               repository.
-                              [default: directus/\${project}]
-        --base-image <image>  The base image the base image should use.
-                              [default: directus/base:\${base}-\${project}-\${kind}]
-        --dist-image <image>  The dist image name.
-                              [default: directus/\${project}]
+                              [default: directus/directus]
+        --image <image>       The image name.
+                              [default: directus/directus]
         --channel <channel>   The channel to add to the image tags (stable, unstable,
                               canary).
                               [default: ""]
@@ -247,24 +90,17 @@ function build_dist_help() {
 #
 # Builds dist images
 #
-function build_dist() {
-  kind=$(argument kind)
-  base=$(argument base latest)
-  project=$(argument project)
+function build() {
+  kind=$(argument kind "apache")
   version=$(argument version "")
   ref=$(argument ref "${version}")
-  repository=$(argument repository "directus/${project}")
-  base_image=$(argument base-image "directus/base:${base}-${project}-${kind}")
-  dist_image=$(argument dist-image "${repository}")
+  repository=$(argument repository "directus/directus")
+  image=$(argument image "${repository}")
   push=$(flagd push)
   fresh=$(flagd fresh)
   channel=$(argument channel "")
   hotfix=$(argument hotfix "")
-
-  if [ "${base_image}" == "directus/base:latest-${project}-${kind}" ]; then
-    base=$(fetch_latest_release directus/docker)
-    base_image="directus/base:${base}-${project}-${kind}"
-  fi
+  context_dir="${root}/images/${kind}"
 
   is_dir=false
   if [ -d "${repository}" ]; then
@@ -283,16 +119,16 @@ function build_dist() {
     fi
 
     repository_url="https://github.com/${repository}.git"
-    workdir="./temp/${repository}/${ref}/"
+    repository_dir=$(realpath "./temp/${repository}/${ref}")
 
     if [ $fresh == true ]; then
-      if [ -d "${workdir}" ]; then
-        rm -rf "${workdir}"
+      if [ -d "${repository_dir}" ]; then
+        rm -rf "${repository_dir}"
       fi
-      git clone --quiet "$repository_url" "${workdir}"
+      git clone --quiet "$repository_url" "${repository_dir}"
     else
-      if ! [ -d "${workdir}" ]; then
-        git clone --quiet "$repository_url" "${workdir}"
+      if ! [ -d "${repository_dir}" ]; then
+        git clone --quiet "$repository_url" "${repository_dir}"
       fi
     fi
   else
@@ -302,10 +138,10 @@ function build_dist() {
     fi
 
     repository_url="$(git remote get-url origin)"
-    workdir="${repository}"
+    repository_dir=$(realpath "${repository}")
   fi
 
-  cd "${workdir}"
+  cd "${repository_dir}"
 
   if [ "${channel}" != "" ]; then
     version=${version}-${channel}
@@ -315,7 +151,7 @@ function build_dist() {
     version=${version}+hotfix-${hotfix}
   fi
 
-  show_header "build:dist" "project='${project}', version='${version}', kind='${kind}', base='${base}', repo='${repository}', ref='${ref}'"
+  show_header "build" "version='${version}', kind='${kind}', repo='${repository}', ref='${ref}'"
 
   if [ $is_dir == false ]; then
     repository_data=$(git ls-remote ${repository_url} -q ${ref} 2> /dev/null)
@@ -345,7 +181,7 @@ function build_dist() {
     repository_commit="local"
   fi
 
-  echo "Building ${dist_image}:${version}-${kind} using a ${repository_from} (commit ${repository_commit})"
+  echo "Building ${image}:${version}-${kind} using a ${repository_from} (commit ${repository_commit})"
   echo ""
 
   if [ $is_dir == false ]; then
@@ -353,28 +189,29 @@ function build_dist() {
     git checkout ${repository_commit}
   fi
 
-  temp_image="temp-${project}-${kind}:${repository_commit:0:8}"
-  image_path_kind="./docker/${kind}/Dockerfile"
-  image_path_root="./Dockerfile"
-
   if ! [ -f ".dockerignore" ]; then
     echo "**/.git" >> ".dockerignore"
     echo "**/.vscode" >> ".dockerignore"
   fi
 
-  if [ -f "${image_path_kind}" ]; then
-    docker build --build-arg BASE_IMAGE=${base_image} -t ${temp_image} -f ${image_path_kind} .
-  elif [ -f "${image_path_root}" ]; then
-    docker build --build-arg BASE_IMAGE=${base_image} -t ${temp_image} -f ${image_path_root} .
-  else
-    echo "FROM ${base_image}" | docker build -t ${temp_image} -f - .
+  cd "${root}"
+
+  if [ -e "./context" ]; then
+    rm -rf ./context
   fi
+  mkdir -p ./context
 
-  output_images=$(make_tags ${dist_image} ${kind} ${version})
+  cp -ra "${context_dir}/." "./context/"
+  ln -s -f "${repository_dir}" "./context/directus"
 
-  echo "Tags = ${output_images}"
+  temp_image="temp-directus-${kind}:${repository_commit:0:8}"
+  docker build -t ${temp_image} ./context
 
-  for image in $output_images
+  images=$(make_tags ${image} ${kind} ${version})
+
+  echo "Tags = ${images}"
+
+  for image in $images
   do
     echo Tagging ${image}
     docker tag "${temp_image}" "${image}"
@@ -473,54 +310,24 @@ function build_all() {
 }
 
 #
-# Bootstrap help
-#
-function main_help() {
-  echo "
-    Performs directus image builds.
-
-    Usage:
-
-      build --type (all|core|base|dist)
-
-    Options:
-      --help          Shows this screen.
-      --type <type>   Which type of build to perform.
-
-  " | cut -c 5-
-}
-
-#
 # Bootstrap
 #
 function main() {
-  type=$(argument type "")
   help=$(flagd help)
 
-  if [ $help == true ] && [ "$type" == "" ]; then
+  if [ $help == true ]; then
     show_header "directus"
-    main_help
+    build_help
     exit 0
   fi
-
-  set +e
-  declare -f build_${type} > /dev/null
-  result=$?
-  set -e
 
   if [ $help == true ]; then
-    build_${type}_help
+    build_help
     exit 0
   fi
 
-  if [ "$result" == "0" ]; then
-    build_${type}
-    exit $?
-  fi
-
-  show_header "directus"
-  main_help
-  return 1
+  build
+  exit $?
 }
 
 main

@@ -25,22 +25,21 @@ docker-compose up -d
 Using a specific email and password
 
 ```
-docker-compose run api install --email your@email.com --password somepass
+docker-compose run directus install --email your@email.com --password somepass
 ```
 
 Using a specific email and a random password
 
 ```
-docker-compose run api install --email your@email.com
+docker-compose run directus install --email your@email.com
 ```
 
 Using default email (admin@example.com) and a random password
 
 ```
-docker-compose run api install
+docker-compose run directus install
 ```
 
 ## Accessing
 
-- [api at http://api.localtest.me/](http://api.localtest.me/)
-- [app at http://app.localtest.me/](http://app.localtest.me/)
+- [Directus at http://directus.localtest.me/](http://directus.localtest.me/)

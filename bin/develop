@@ -5,10 +5,8 @@ set -e
 root=$(cd $(dirname ${0})/../; pwd)
 source ${root}/bin/source/argsf
 
-hotfix=$(argument hotfix "")
 namespace=$(argument namespace directus)
 prefix=$(argument prefix "")
 
-${root}/bin/build --type dist --kind apache --project api --ref develop --dist-image ${namespace}/${prefix}api --version develop
-${root}/bin/build --type dist --kind node --project app --ref develop --dist-image ${namespace}/${prefix}app --version develop
+${root}/bin/build --image ${namespace}/${prefix}directus --version develop
 

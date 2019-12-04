@@ -1,4 +1,10 @@
-FROM directus/api:v2-apache
+FROM directus/directus:v8-apache
 
-# Redis is going to be in the dist image soon, but with this package we can easily show how to create custom images
-RUN pecl install redis && docker-php-ext-enable redis
+# Install PHP extensions
+RUN \
+  pecl install redis && \
+  docker-php-ext-enable redis
+
+# Install composer packages
+RUN \
+  composer require league/flysystem-aws-s3-v3

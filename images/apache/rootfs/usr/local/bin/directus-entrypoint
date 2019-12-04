@@ -20,7 +20,16 @@ function install() {
   echo "Installing database..."
 
   if [ ${install_force} == true ]; then
-    /var/www/bin/directus install:database -f
+    /var/directus/bin/directus install:database -f
+    if [ "$?" != "0" ]; then
+      echo ""
+      echo "Seems like database failed to install."
+      echo "Please check the error message above."
+      echo ""
+      return 1
+    fi
+  else
+    /var/directus/bin/directus install:database
     if [ "$?" != "0" ]; then
       echo ""
       echo "Seems like database failed to install."
@@ -29,20 +38,11 @@ function install() {
       echo ""
       return 1
     fi
-  else
-    /var/www/bin/directus install:database
-    if [ "$?" != "0" ]; then
-      echo ""
-      echo "Seems like database failed to install."
-      echo "Please check the error message above."
-      echo ""
-      return 1
-    fi
   fi
 
   echo "Registering user..."
 
-  /var/www/bin/directus install:install -e "${install_email}" -p "${install_password}" -t "${install_title}"
+  /var/directus/bin/directus install:install -e "${install_email}" -p "${install_password}" -t "${install_title}"
   if [ "$?" != "0" ]; then
     echo ""
     echo "Seems like database failed to install."
@@ -96,5 +96,8 @@ if [ "${command}" == "apache2-foreground" ]; then
   fi
 fi
 
+# Check and install dependencies
+install-dependencies
+
 # Forward commands
-exec /usr/local/bin/docker-entrypoint $@
+exec /usr/local/bin/docker-php-entrypoint $@

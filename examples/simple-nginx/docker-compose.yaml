@@ -25,15 +25,15 @@ services:
       - 3306:3306
 
   #
-  # API instance.
-  # This should serve our api requests and won't work before database
+  # Directus instance.
+  # This should serve directus and won't work before database
   # is properly installed by running the installer.
   #
-  api:
-    image: directus/api:v2-apache
+  directus:
+    image: directus/directus:v8-apache
     environment:
       # Load balancer
-      VIRTUAL_HOST: "api.localtest.me"
+      VIRTUAL_HOST: "directus.localtest.me"
 
       # App
       DIRECTUS_APP_ENV: "production"
@@ -67,21 +67,7 @@ services:
 
     # Uploads gets saved in uploads folder
     volumes:
-      - ./uploads/:/var/www/public/uploads/
+      - ./uploads/:/var/directus/public/uploads/
 
     links:
       - mysql:mysql
-
-  #
-  # APP instance.
-  # This is our graphical management interface.
-  #
-  app:
-    image: directus/app:v7-node
-    environment:
-      # Load balancer
-      VIRTUAL_HOST: "app.localtest.me"
-
-      # Endpoints
-      DIRECTUS_APP_TITLE: "Example"
-      DIRECTUS_APP_URL: "http://api.localtest.me/_/"
