@@ -6,7 +6,7 @@
 
 <p>&nbsp;</p>
 <h1 align="center">
-  The All-New Directus 7<br>Future-Proof Headless CMS
+  Directus 8
 </h1>
 
 <h3 align="center">
@@ -20,22 +20,20 @@
 
 <p>&nbsp;</p>
 
-> **Warning**: container support is _HIGHLY_ experimental and we're still gathering feedback from the community. We can raise issues or ping us in #docker channel on [Slack](https://slack.directus.io).
-
 # Overview
 
-Directus provides several container images that will help we get started. Even though we maintain extra `kinds`, our officially supported image is based on `php:apache`. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
+Directus provides several container images that will help we get started. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
-# Concepts
+# Versioning
 
-This repository has several images in it that follows some organization concepts.
+We publish major, minor and patch versions to docker hub, as well as hotfixes and security updates. This means that you can choose between:
 
-We've organized our docker images in a way that:
-
-- We do a better use of layer caching
-- We avoid as much code duplication on dockerfiles as possible
-- We can make security updates (os/webserver) without modifying application images code
-- We provide a easy way for the end user to extend images
+- Patches `v8.2.0`
+  > Updates to this tag will receive hotfixes and security updates
+- Minor `v8.2`
+  > Updates to this tag will receive all patches, hotfixes and security updates
+- Major `v8`
+  > Updates to this tag will receive all minor updates, patches, hotfixes and security updates
 
 # Building
 
@@ -64,15 +62,3 @@ cd docker
 # Invoke build script
 ./bin/build --help
 ```
-
----
-
-# Sandbox
-
-TODO: write about sandbox
-
----
-
-<p align="center">
-  Directus is released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3</a> license. <a href="http://rangerstudio.com">RANGER Studio LLC</a> owns all Directus trademarks and logos on behalf of our project's community. Copyright © 2006-2019, <a href="http://rangerstudio.com">RANGER Studio LLC</a>.
-</p>

@@ -2,13 +2,10 @@
 
 set -e
 
-version=${TRAVIS_TAG:-${TRAVIS_BRANCH:-"develop"}}
-
-if [ "${TRAVIS_PULL_REQUEST}" == "true" ]; then
-  $(dirname ${0})/build --version "${version}"
+version="${TRAVIS_TAG}"
+branch="${TRAVIS_BRANCH:-"master"}"
+if [ "${version}" != "" ]; then
+  $(dirname ${0})/build --version "${version}" --push
 else
-  #$(dirname ${0})/build --version "${version}" --push
-  #if [ "${TRAVIS_TAG}" != "" ]; then
-  #  $(dirname ${0})/build --image directus/directus --channel yolo --push
-  #fi
+  $(dirname ${0})/build --version "${branch}" --ref "master"
 fi

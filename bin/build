@@ -119,7 +119,7 @@ function build() {
     fi
 
     repository_url="https://github.com/${repository}.git"
-    repository_dir=$(realpath "./temp/${repository}/${ref}")
+    repository_dir="${root}/temp/${repository}/${ref}"
 
     if [ $fresh == true ]; then
       if [ -d "${repository_dir}" ]; then
@@ -199,10 +199,12 @@ function build() {
   if [ -e "./context" ]; then
     rm -rf ./context
   fi
-  mkdir -p ./context
+  mkdir -p ./context/directus
 
   cp -ra "${context_dir}/." "./context/"
-  ln -s -f "${repository_dir}" "./context/directus"
+  cp -ra "${repository_dir}/." "./context/directus/"
+
+  ls -lah ./context
 
   temp_image="temp-directus-${kind}:${repository_commit:0:8}"
   docker build -t ${temp_image} ./context
