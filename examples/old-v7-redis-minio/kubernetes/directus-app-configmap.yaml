@@ -1,7 +1,0 @@
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: directus-app-configmap
-data:
-  DIRECTUS_APP_TITLE: "Directus"
-  DIRECTUS_APP_URL: "directus-api"
