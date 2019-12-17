@@ -55,7 +55,8 @@ services:
 
     # Uploads gets saved in uploads folder
     volumes:
-      - ./uploads/:/var/directus/public/uploads/
+      - ./data/config:/var/directus/config
+      - ./data/uploads:/var/directus/public/uploads
 
     links:
       - mysql:mysql

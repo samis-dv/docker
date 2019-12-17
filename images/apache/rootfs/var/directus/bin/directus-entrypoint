@@ -7,7 +7,6 @@ source $(dirname $0)/argsf
 #
 
 function install() {
-
   install_title=$(argument title "${DIRECTUS_INSTALL_TITLE:-Directus}")
   install_email=$(argument email "${DIRECTUS_INSTALL_EMAIL:-"admin@example.com"}")
   install_password=$(argument password "${DIRECTUS_INSTALL_PASSWORD:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)}")
@@ -65,39 +64,59 @@ function install() {
 }
 
 #
+# Seeds the volume folders
+#
+
+function seed_volumes() {
+  seed=false
+  if [ ! -f /var/directus/config/.directus ]; then
+    seed=true
+  elif [ ! -f /var/directus/public/uploads/.directus ]; then
+    seed=true
+  fi
+
+  if [ $seed == true ]; then
+    directus-setup seed-volumes
+  fi
+}
+
+#
 # Bootstrap
 #
 
-command=${1:-""}
-if [ "${command}" == "install" ] || [ "${DIRECTUS_INSTALL}" == "auto" ]; then
-  install
-  exit $?
-fi
+function main() {
+  command=${1:-""}
+  if [ "${command}" == "install" ] || [ "${DIRECTUS_INSTALL}" == "auto" ]; then
+    install
+    exit $?
+  fi
 
-if [ "${command}" == "apache2-foreground" ]; then
-  if [ "${DIRECTUS_USE_ENV}" != "0" ]; then
-    if [ "${DIRECTUS_AUTH_SECRETKEY}" == "" ]; then
-      echo "Missing required DIRECTUS_AUTH_SECRETKEY environment variable."
-      echo "> Please refer to docs if unsure what to do in this case."
-      exit 1
-    fi
+  if [ "${command}" == "apache2-foreground" ]; then
+    if [ "${DIRECTUS_USE_ENV}" != "0" ]; then
+      if [ "${DIRECTUS_AUTH_SECRETKEY}" == "" ]; then
+        echo "Missing required DIRECTUS_AUTH_SECRETKEY environment variable."
+        echo "> Please refer to docs if unsure what to do in this case."
+        exit 1
+      fi
 
-    if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "" ]; then
-      echo "Missing required DIRECTUS_AUTH_PUBLICKEY environment variable."
-      echo "> Please refer to docs if unsure what to do in this case."
-      exit 1
-    fi
+      if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "" ]; then
+        echo "Missing required DIRECTUS_AUTH_PUBLICKEY environment variable."
+        echo "> Please refer to docs if unsure what to do in this case."
+        exit 1
+      fi
 
-    if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "${DIRECTUS_AUTH_SECRETKEY}" ]; then
-      echo "DIRECTUS_AUTH_PUBLICKEY value cannot be equal to DIRECTUS_AUTH_SECRETKEY."
-      echo "> Please refer to docs if unsure what to do in this case."
-      exit 1
+      if [ "${DIRECTUS_AUTH_PUBLICKEY}" == "${DIRECTUS_AUTH_SECRETKEY}" ]; then
+        echo "DIRECTUS_AUTH_PUBLICKEY value cannot be equal to DIRECTUS_AUTH_SECRETKEY."
+        echo "> Please refer to docs if unsure what to do in this case."
+        exit 1
+      fi
     fi
   fi
-fi
 
-# Check and install dependencies
-install-dependencies
+  seed_volumes
 
-# Forward commands
-exec /usr/local/bin/docker-php-entrypoint $@
+  # Forward commands
+  exec /usr/local/bin/docker-php-entrypoint $@
+}
+
+main $@
