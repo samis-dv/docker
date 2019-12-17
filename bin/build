@@ -226,92 +226,6 @@ function build() {
 }
 
 #
-# Build all help
-#
-function build_all_help() {
-  echo "
-    Performs builds for all core and base image available.
-    The base images from this build will always reference the core images from
-    the same build. Use \"build --type base\" if you want to point base images
-    to a different core image.
-
-    Usage:
-
-      build --type all --version v1.0.0
-      build --type all --version 1.2.3-pre --image_core user/directus-core
-      build --type all --version test1 --image_base user/directus-base
-      build --type all \\
-            --version test2 \\
-            --image_core user/directus-core \\
-            --image_base user/directus-base
-
-    Options:
-
-      --version <version>   The output images version. Semver compatible strings
-                            will output multiple images tags for major minor patch
-                            and prerelease.
-      --image-core <image>  The image namespace/name to use for core images.
-                            [default: directus/core]
-      --image-base <image>  The image namespace/name to use for base images.
-                            [default: directus/base]
-
-    Flags:
-
-      --help                Shows this screen.
-      --push                Push the output images after each build.
-                            [default: not set]
-  " | cut -c 5-
-}
-
-#
-# Builds all images
-#
-function build_all() {
-  image_core=$(argument image-core directus/core)
-  image_base=$(argument image-core directus/base)
-  version=$(argument version)
-
-  push=$(flagd push)
-  if [ $push == true ]; then
-    push="--push"
-  else
-    push=""
-  fi
-
-  #
-  # Build core images
-  #
-  for kind in apache node
-  do
-    ${root}/bin/build \
-      --type core \
-      --image ${image_core} \
-      --kind ${kind} \
-      --version ${version} \
-      ${push}
-  done
-
-  #
-  # Build base images
-  #
-  for project in `find "${root}/images/base/" -mindepth 1 -maxdepth 1 -type d -print`
-  do
-    project=$(basename ${project})
-    for kind in `find "${root}/images/base/${project}" -mindepth 1 -maxdepth 1 -type d -print`
-    do
-      kind=$(basename ${kind})
-      ${root}/bin/build \
-        --type base \
-        --core ${image_core}:${version}-${kind} \
-        --kind ${kind} \
-        --version ${version} \
-        --project ${project} \
-        ${push}
-    done
-  done
-}
-
-#
 # Bootstrap
 #
 function main() {
@@ -319,11 +233,6 @@ function main() {
 
   if [ $help == true ]; then
     show_header "directus"
-    build_help
-    exit 0
-  fi
-
-  if [ $help == true ]; then
     build_help
     exit 0
   fi
