@@ -30,6 +30,39 @@ function fetch_latest_release() {
 }
 
 #
+# Strips out docker build from a version information
+#
+function version_to_release() {
+  version=${1}
+  call semver get major ${version} > /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    echo "${version}"
+  else
+    final=""
+    if [ "${version:0:1}" == "v" ]; then
+      final="v"
+    fi
+
+    final="${final}$(call semver get major ${version})"
+    final="${final}.$(call semver get minor ${version})"
+    final="${final}.$(call semver get patch ${version})"
+
+    prerel="$(call semver get prerel ${version})"
+    if [ "${prerel}" != "" ]; then
+      final="${final}-${prerel}"
+    fi
+
+    build="$(call semver get build ${version})"
+    if [ "${build}" != "" ]; then
+      if [ "${build:0:6}" != "docker" ]; then
+        final="${final}+${build}"
+      fi
+    fi
+    echo "${final}"
+  fi
+}
+
+#
 # Makes a set of tags
 #
 function make_tags() {

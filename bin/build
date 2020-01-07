@@ -70,15 +70,8 @@ function build_help() {
                               [default: directus/directus]
         --image <image>       The image name.
                               [default: directus/directus]
-        --channel <channel>   The channel to add to the image tags (stable, unstable,
-                              canary).
-                              [default: ""]
-        --hotfix <id>         The build is a docker adjustment and a build should be
-                              appended to the end of the tag.
-                              [default: ""]
 
     Flags:
-
       --help                Shows this screen.
       --push                Push the output images after each build.
                             [default: not set]
@@ -93,13 +86,12 @@ function build_help() {
 function build() {
   kind=$(argument kind "apache")
   version=$(argument version "")
-  ref=$(argument ref "${version}")
+  release=$(argument release "${version}")
+  ref=$(argument ref "")
   repository=$(argument repository "directus/directus")
   image=$(argument image "${repository}")
   push=$(flagd push)
   fresh=$(flagd fresh)
-  channel=$(argument channel "")
-  hotfix=$(argument hotfix "")
   context_dir="${root}/images/${kind}"
 
   is_dir=false
@@ -110,11 +102,19 @@ function build() {
     return 1
   fi
 
+  if [ "${version}" == "${release}" ]; then
+    release="$(version_to_release ${version})"
+  fi
+
+  if [ "${ref}" == "" ]; then
+    ref="${release}"
+  fi
+
   if [ $is_dir == false ]; then
-    if [ "${version}" == "" ]; then
-      version=$(fetch_latest_release ${repository})
+    if [ "${release}" == "" ]; then
+      release=$(fetch_latest_release ${repository})
       if [ "${ref}" == "" ]; then
-        ref="${version}"
+        ref="${release}"
       fi
     fi
 
@@ -132,8 +132,8 @@ function build() {
       fi
     fi
   else
-    if [ "${version}" == "" ]; then
-      echo "Please set a version when working with local repositories"
+    if [ "${release}" == "" ]; then
+      echo "Please set a release when working with local repositories"
       exit 1
     fi
 
@@ -143,15 +143,7 @@ function build() {
 
   cd "${repository_dir}"
 
-  if [ "${channel}" != "" ]; then
-    version=${version}-${channel}
-  fi
-
-  if [ "${hotfix}" != "" ]; then
-    version=${version}+hotfix-${hotfix}
-  fi
-
-  show_header "build" "version='${version}', kind='${kind}', repo='${repository}', ref='${ref}'"
+  show_header "build" "version='${version}', release='${release}' kind='${kind}', repo='${repository}', ref='${ref}'"
 
   if [ $is_dir == false ]; then
     repository_data=$(git ls-remote ${repository_url} -q ${ref} 2> /dev/null)
@@ -190,6 +182,8 @@ function build() {
   fi
 
   if ! [ -f ".dockerignore" ]; then
+    echo ".git" >> ".dockerignore"
+    echo ".vscode" >> ".dockerignore"
     echo "**/.git" >> ".dockerignore"
     echo "**/.vscode" >> ".dockerignore"
   fi
@@ -203,8 +197,6 @@ function build() {
 
   cp -ra "${context_dir}/." "./context/"
   cp -ra "${repository_dir}/." "./context/directus/"
-
-  ls -lah ./context
 
   temp_image="temp-directus-${kind}:${repository_commit:0:8}"
   docker build -t ${temp_image} ./context

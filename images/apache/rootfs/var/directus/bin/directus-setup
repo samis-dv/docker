@@ -21,7 +21,7 @@ function cmd_install_composer() {
   php composer-setup.php --filename=composer --install-dir /usr/local/bin --quiet
   RESULT=$?
   rm composer-setup.php
-  exit $RESULT
+  return $RESULT
 }
 
 #
@@ -84,7 +84,6 @@ function cmd_initial() {
   cmd_install_prestissimo
   cmd_configure_apache
   cmd_configure_php
-  cmd_install_dependencies
 }
 
 #
