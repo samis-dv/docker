@@ -22,8 +22,7 @@ services:
     links:
       - redis
     environment:
-      DIRECTUS_APP_ENV: "production"
-      DIRECTUS_APP_TIMEZONE: "Europe/Madrid"
+      DIRECTUS_ENV: "production"
 
       # These are now required, make sure to always set
       # to something unique while in production
