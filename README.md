@@ -24,6 +24,18 @@
 
 Directus provides several container images that will help we get started. All our container images can be found in [docker hub](https://hub.docker.com/r/directus/).
 
+# Reference
+
+- [Docker issues](https://github.com/directus/docker/issues)
+- [Docker quick install](https://docs.directus.io/installation/docker.html)
+- [Docker documentation](https://docs.directus.io/docker/overview.html)
+- [Environment variables](https://docs.directus.io/docker/environment.html)
+- [Slack channel #docker](https://directus.chat/)
+
+# Environment variables
+
+Our full list of environment variables can be found on our [documentation page](https://docs.directus.io/docker/environment.html). Please make sure to take a look over our overview page as there are some required variables to get run the images.
+
 # Versioning
 
 We publish major, minor and patch versions to docker hub, as well as hotfixes and security updates. This means that you can choose between:

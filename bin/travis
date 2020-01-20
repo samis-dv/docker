@@ -9,3 +9,16 @@ if [ "${version}" != "" ]; then
 else
   $(dirname ${0})/build --version "${branch}" --ref "master"
 fi
+
+if [ "${branch}" == "master" ]; then
+  LOGIN_PAYLOAD="{\"username\":\"${DOCKER_USERNAME}\",\"password\":\"${DOCKER_PASSWORD}\"}"
+  TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d ${LOGIN_PAYLOAD} https://hub.docker.com/v2/users/login/ | jq -r .token)
+  REPO_URL="https://hub.docker.com/v2/repositories/directus/directus/"
+  RESPONSE_CODE=$(curl -s --write-out %{response_code} --output /dev/null -H "Authorization: JWT ${TOKEN}" -X PATCH --data-urlencode full_description@./README_HUB.md ${REPO_URL})
+  if [ $RESPONSE_CODE -eq 200 ]; then
+    exit 0
+  else
+    echo "Received response code: $RESPONSE_CODE"
+    exit 1
+  fi
+fi
