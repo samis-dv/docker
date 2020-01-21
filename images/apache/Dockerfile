@@ -18,7 +18,7 @@ RUN \
   rm -rf /var/lib/apt/lists/* && \
   docker-php-ext-configure zip --with-libzip && \
   docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
-  docker-php-ext-install gd zip exif pdo pdo_mysql xml fileinfo && \
+  docker-php-ext-install gd zip exif pdo pdo_mysql xml fileinfo mysqli && \
   pecl install imagick && pecl install redis && \
   docker-php-ext-enable imagick && docker-php-ext-enable redis
 
